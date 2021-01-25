@@ -1,0 +1,118 @@
+@tailwind base;
+
+@tailwind components;
+
+body {
+    word-break: break-word;
+}
+html,
+body {
+    height: 100%;
+}
+.collapse:not(.show) {
+    display: none;
+}
+.collapsing {
+    position: relative;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+}
+.ReactCollapse--collapse {
+    transition: height 350ms;
+}
+.label {
+    @apply leading-10 text-sm font-medium inline-block capitalize;
+}
+.form {
+    @apply w-full border px-3 py-1  bg-gray-100  transition-all duration-150 rounded-md;
+    -webkit-appearance: none;
+}
+select {
+    @apply w-full border px-3 py-1  bg-gray-100  transition-all duration-150 rounded-md;
+}
+.form:focus,
+select:focus {
+    @apply shadow-outline;
+    outline: none;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.navbar {
+    @apply px-3 py-2 my-2 rounded-md text-sm font-medium text-gray-500;
+}
+.navbar.active {
+    @apply text-gray-900;
+}
+.navbar:hover {
+    @apply text-gray-900;
+}
+.form-checkbox {
+    @apply appearance-none inline-block align-middle select-none flex-shrink-0 border rounded bg-white border-gray-300;
+}
+.form-checkbox:checked {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 16 16' fill='%23fff' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.707 7.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L7 8.586 5.707 7.293z'/%3E%3C/svg%3E");
+    @apply bg-no-repeat bg-center bg-contain border-transparent bg-current;
+}
+.form-checkbox:checked:focus {
+    @apply border-transparent;
+}
+.form-checkbox:focus {
+    @apply outline-none shadow-sm;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+p {
+    line-height: 150%;
+}
+.tooltip .tooltiptext {
+    visibility: hidden;
+    white-space: nowrap;
+    @apply bg-blue-700 shadow;
+
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 20px;
+    position: absolute;
+    z-index: 1;
+    top: -5px;
+    right: 25px;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent #2b6cb0;
+}
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+.dropdown-item {
+    @apply w-full block px-4 py-2 text-sm leading-5 text-gray-700;
+}
+.dropdown-item:hover {
+    @apply bg-gray-100 text-gray-900;
+}
+.dropdown-item:focus {
+    @apply outline-none bg-gray-100 text-gray-900;
+}
+.rangeslider-horizontal .rangeslider__fill {
+    background-color: #5e338c !important;
+}
+@tailwind utilities;

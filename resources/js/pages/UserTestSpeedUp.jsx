@@ -140,7 +140,7 @@ class UserTestSpeedUp extends Component {
             <>
                 {stage === STAGES.SHOW_WELCOME && (
                     <>
-                        <div className="absolute right-0 left-0 top-0 bottom-0 flex items-center justify-center">
+                        <div className="absolute right-0 left-0 top-0 bottom-0 flex items-center justify-center  flex-col">
                             <ShowNumberOfTime
                                 remainTime={remainTime}
                                 showTemp={showTemp}

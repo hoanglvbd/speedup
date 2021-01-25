@@ -85,7 +85,7 @@ class CompanyLayout extends Component {
                         Logout
                     </a>
                 </nav>
-                <main className="h-full flex gap-6  bg-gray-100">
+                <main className="min-h-full flex gap-6  bg-gray-100">
                     {this.props.children}
                 </main>
             </>

@@ -103,7 +103,7 @@ class UserCompanyCreate extends Component {
                     </div>
 
                     {/*  */}
-                    <div className="md:w-6/12 shadow border rounded px-6 py-2 bg-white">
+                    <div className="md:w-6/12 ">
                         <p className="italic text-red-500">
                             Bạn đã sử dụng 0/10 lượt tạo
                         </p>
@@ -131,7 +131,10 @@ class UserCompanyCreate extends Component {
                                 values,
                                 errors
                             }) => (
-                                <form onSubmit={handleSubmit}>
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="shadow border rounded px-6 py-2 bg-white mb-12"
+                                >
                                     <Input
                                         title="Email"
                                         name="email"

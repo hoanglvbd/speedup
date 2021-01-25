@@ -57,6 +57,7 @@ class UserCompanyList extends Component {
 
         this.renderHeader = this.renderHeader.bind(this);
         this.renderBody = this.renderBody.bind(this);
+        this.downloadExcel = this.downloadExcel.bind(this);
     }
 
     componentDidMount() {
@@ -157,7 +158,10 @@ class UserCompanyList extends Component {
         const temp = this.state.selectedUsers;
         const user_id_array = [];
         temp.forEach(e => {
-            user_id_array.push(e.user_id);
+            user_id_array.push({
+                user_id: e.user_id,
+                name: e.name
+            });
         });
         return user_id_array;
     }
@@ -220,6 +224,21 @@ class UserCompanyList extends Component {
             this.props.notify.error();
         } finally {
         }
+    }
+
+    downloadExcel(num) {
+        window.axios
+            .post(window.baseURL + "/api/export/summaryExcel", {
+                num: num,
+                data: this.checkToArray()
+            })
+            .then(rs => {
+                if (num == 1) {
+                    window.open(window.baseURL + "/Summary_result_No_1.xlsx");
+                } else {
+                    window.open(window.baseURL + "/Summary_result_No_1_2.xlsx");
+                }
+            });
     }
     render() {
         const {
@@ -328,12 +347,13 @@ class UserCompanyList extends Component {
                                         />
                                     }
                                 >
-                                    <a
-                                        href={
+                                    <button
+                                        /*  href={
                                             window.baseURL +
                                             "/api/export/summaryExcel?num=1&user_id=" +
                                             this.checkToArray()
-                                        }
+                                        } */
+                                        onClick={() => this.downloadExcel(1)}
                                         className={
                                             (selectedUsers.some(
                                                 r => r.results_count >= 1
@@ -351,13 +371,14 @@ class UserCompanyList extends Component {
                                         }
                                     >
                                         Download Summary Result No. 1
-                                    </a>
-                                    <a
-                                        href={
+                                    </button>
+                                    <button
+                                        /*   href={
                                             window.baseURL +
                                             "/api/export/summaryExcel?num=2&user_id=" +
                                             this.checkToArray()
-                                        }
+                                        } */
+                                        onClick={() => this.downloadExcel(2)}
                                         className={
                                             (selectedUsers.some(
                                                 r => r.results_count == 2
@@ -375,7 +396,7 @@ class UserCompanyList extends Component {
                                         }
                                     >
                                         Download Summary Result No. 2
-                                    </a>
+                                    </button>
                                 </Dropdown>
                                 <div className="mx-3">
                                     <Button

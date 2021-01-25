@@ -41,8 +41,18 @@ class MainQuesions extends Component {
         this.handleAutoSave = this.handleAutoSave.bind(this);
         this.buttonRef = React.createRef();
         this.scrollListener = this.scrollListener.bind(this);
+        window.setAllLevel = this.setAllLevel.bind(this);
     }
 
+    setAllLevel() {
+        let answerCopy = [...this.state.answers];
+        for (let index = 0; index < answerCopy.length; index++) {
+            answerCopy[index].level = "6";
+        }
+        this.setState({
+            answers: answerCopy
+        });
+    }
     componentDidMount() {
         setTimeout(() => {
             this.setState({

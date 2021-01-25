@@ -43,8 +43,10 @@ class UserController extends Controller
     public function submit(Request $rq)
     {
         $user_id = $rq->user_id;
-        $temp = Temp::where('user_id', $user_id);
-        $temp->delete();
+        $temp = Temp::where('user_id', $user_id)->first();
+        if ($temp !== null) {
+            $temp->delete();
+        }
 
 
         $request_result = isset($rq->results) ? $rq->results : [];

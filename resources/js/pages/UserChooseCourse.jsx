@@ -9,9 +9,6 @@ class UserChooseCourse extends Component {
             courses: [
                 {
                     index: 1
-                },
-                {
-                    index: 2
                 }
             ]
         };
@@ -34,10 +31,6 @@ class UserChooseCourse extends Component {
                 to="/speedup"
                 className="bg-white border shadow rounded w-56 h-56 my-6 mr-6 hover:shadow-lg"
             >
-                <img
-                    className="rounded w-full h-40"
-                    src="https://picsum.photos/300/300"
-                />
                 <div className="p-3">
                     <h2 className="text-lg font-semibold">SpeedUp Course</h2>
                 </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Result;
 use App\Models\ResultDetail;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -32,10 +33,11 @@ class CalculationController extends Controller
 
     public function summaryExcel(Request $req)
     {
-        $user_id_input = $req->user_id;
+        $data = $req->data;
+        /*    $user_id_input = $req->user_id; */
         $resultCount = $req->num;
 
-        $user_array = explode(',', $user_id_input);
+        /*     $user_array = explode(',', $user_id_input); */
         $stylesHeader = [
             'font' => [
                 'bold' => true,
@@ -293,17 +295,16 @@ class CalculationController extends Controller
             $sheet->setCellValue('J1', '⑧時感覚（Sense of time）')->getStyle('J1')->applyFromArray($stylesHeader);
 
             $summary = [];
-            foreach ($user_array as $key => $user_id) {
-                $user = User::where('id', $user_id)->first();
+            foreach ($data as $key => $value) {
 
-                $first = Result::where('user_id', $user_id)->where('number_of_times', 1)->first();
+                $first = Result::where('user_id', $value['user_id'])->where('number_of_times', 1)->first();
                 if ($first == null) continue;
 
                 $detail_first = ResultDetail::where("result_id", $first->id)->orderBy('question_group_id')->get()->toArray();
                 $result_first = $this->calcSummary($detail_first);
 
                 array_push($summary, [
-                    $user->name, $result_first[0], $result_first[1], $result_first[2], $result_first[3], $result_first[4], $result_first[5], $result_first[6], $result_first[7], $result_first[8]
+                    $value['name'], $result_first[0], $result_first[1], $result_first[2], $result_first[3], $result_first[4], $result_first[5], $result_first[6], $result_first[7], $result_first[8]
                 ]);
             }
             //calculate total row
@@ -408,7 +409,9 @@ class CalculationController extends Controller
             /*    dd($summary); */
             $writer = new Xlsx($spreadsheet);
             $writer->save('Summary_result_No_1.xlsx');
-            return response()->download('Summary_result_No_1.xlsx');
+            return response()->json([
+                'status' => "OK"
+            ]);
         }
         if ($resultCount == 2) {
             $spreadsheet = new Spreadsheet();
@@ -475,11 +478,9 @@ class CalculationController extends Controller
             $sheet->getStyle('AB1')->applyFromArray($stylesHeader);
 
             $row_start = 2;
-            foreach ($user_array as $key => $user_id) {
-                $user = User::where('id', $user_id)->first();
-
-                $first = Result::where('user_id', $user_id)->where('number_of_times', 1)->first();
-                $second = Result::where('user_id', $user_id)->where('number_of_times', 2)->first();
+            foreach ($data as $key => $value) {
+                $first = Result::where('user_id', $value['user_id'])->where('number_of_times', 1)->first();
+                $second = Result::where('user_id', $value['user_id'])->where('number_of_times', 2)->first();
                 if ($first == null || $second == null) continue;
 
                 $detail_first = ResultDetail::where("result_id", $first->id)->orderBy('question_group_id')->get()->toArray();
@@ -489,7 +490,7 @@ class CalculationController extends Controller
                 $result_second = $this->calcSummary($detail_second);
 
                 //set content
-                $sheet->setCellValue('A' . $row_start, $user->name)->getStyle('A' . $row_start)->applyFromArray($stylesContentID);
+                $sheet->setCellValue('A' . $row_start, $value['name'])->getStyle('A' . $row_start)->applyFromArray($stylesContentID);
 
                 //total
                 $sheet->setCellValue('B' . $row_start, $result_first[0])->getStyle('B2')->applyFromArray($stylesContent1_1);
@@ -539,7 +540,9 @@ class CalculationController extends Controller
             }
             $writer = new Xlsx($spreadsheet);
             $writer->save('Summary_result_No_1_2.xlsx');
-            return response()->download('Summary_result_No_1_2.xlsx');
+            return response()->json([
+                'status' => "OK"
+            ]);
         }
     }
     public function calcSummary($data)
@@ -641,9 +644,11 @@ class CalculationController extends Controller
         foreach ($data as $key => $value) {
             $score = $score + $value['level_id'] * $Point_per_item;
         }
+        if ($score >= 100) {
+            $score = 100;
+        }
 
-
-        return  round($score, 1);
+        return round($score, 1);
     }
 
     public function getBackgroundOfName($currentIndex, $array)

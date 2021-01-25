@@ -16,6 +16,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/Summary_result_No_1_2.xlsx', function () {
+    return response()->download("Summary_result_No_1_2.xlsx");
+});
+Route::get('/Summary_result_No_1.xlsx', function () {
+    return response()->download("Summary_result_No_1.xlsx");
+});
 
 Route::prefix('/')->group(function () {
     Route::get('/', function () {
@@ -79,5 +85,5 @@ Route::prefix('/api')->group(function () {
 
     Route::post('/get_user', [CompanyController::class, 'get_user']);
 
-    Route::get('/export/summaryExcel', [CompanyController::class, 'Company_summaryExcel']);
+    Route::post('/export/summaryExcel', [CompanyController::class, 'Company_summaryExcel']);
 });

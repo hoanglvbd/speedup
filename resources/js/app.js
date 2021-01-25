@@ -171,8 +171,7 @@ class App extends Component {
                                                 ) : user.type == 1 ? (
                                                     <Switch>
                                                         <Route path="/" exact>
-                                                            <UserHeader />
-                                                            <UserChooseCourse />
+                                                            <Redirect to="/speedup" />
                                                         </Route>
                                                         <Route
                                                             path="/speedup"

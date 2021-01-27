@@ -25,7 +25,11 @@ const addschema = Yup.object({
 class UserCompanyCreate extends Component {
     constructor(props) {
         super(props);
-        this.state = { showPassword: false, loading: false };
+        this.state = {
+            showPassword: false,
+            loading: false,
+            send_email: true
+        };
         this.handleSubmit = this.handleSubmit.bind(this);
     }
     handleSubmit(values) {
@@ -56,25 +60,27 @@ class UserCompanyCreate extends Component {
                             rs_create.data.result_message_text
                         );
 
-                        const rs_invite = await window.axios.post(
-                            window.apiURL,
-                            {
-                                method: "invite_user",
-                                params: {
-                                    session_token: this.props.auth.token,
-                                    user_id: rs_create.data.result_data.user_id,
-                                    company_id: this.props.auth.user.id
+                        if (this.state.send_email) {
+                            const rs_invite = await window.axios.post(
+                                window.apiURL,
+                                {
+                                    method: "invite_user",
+                                    params: {
+                                        session_token: this.props.auth.token,
+                                        email: values.email,
+                                        company_id: this.props.auth.user.id
+                                    }
                                 }
+                            );
+                            if (rs_invite.data.result_code == 1) {
+                                this.props.notify.success(
+                                    rs_invite.data.result_message_text
+                                );
+                            } else {
+                                this.props.notify.error(
+                                    rs_invite.data.result_message_text
+                                );
                             }
-                        );
-                        if (rs_invite.data.result_code == 1) {
-                            this.props.notify.success(
-                                rs_invite.data.result_message_text
-                            );
-                        } else {
-                            this.props.notify.error(
-                                rs_invite.data.result_message_text
-                            );
                         }
                     } else {
                         this.props.notify.error(
@@ -93,9 +99,10 @@ class UserCompanyCreate extends Component {
     }
     render() {
         const { showPassword, loading } = this.state;
+        const { auth } = this.props;
         return (
             <CompanyLayout>
-                <div className="w-full ml-56 mr-3">
+                <div className="w-full ml-64 mr-3">
                     <div className="flex justify-between items-center mx-auto py-6">
                         <h1 className="text-base font-bold leading-tight text-gray-900">
                             Create a user
@@ -103,9 +110,9 @@ class UserCompanyCreate extends Component {
                     </div>
 
                     {/*  */}
-                    <div className="md:w-6/12 ">
-                        <p className="italic text-red-500">
-                            Bạn đã sử dụng 0/10 lượt tạo
+                    <div className="md:w-6/12 mx-auto">
+                        <p className="italic text-red-500 mb-6">
+                            Bạn có {auth.user.max_users} lượt tạo
                         </p>
                         <Formik
                             initialValues={{
@@ -252,7 +259,7 @@ class UserCompanyCreate extends Component {
                                                         })
                                                     }
                                                     type="button"
-                                                    className="absolute right-0 top-0 m-1 bg-white p-2"
+                                                    className="absolute right-0 top-0 p-2"
                                                 >
                                                     <img
                                                         className="w-4"
@@ -299,7 +306,7 @@ class UserCompanyCreate extends Component {
                                                         })
                                                     }
                                                     type="button"
-                                                    className="absolute right-0 top-0 m-1 bg-white p-2"
+                                                    className="absolute right-0 top-0 p-2"
                                                 >
                                                     <img
                                                         className="w-4"
@@ -322,28 +329,25 @@ class UserCompanyCreate extends Component {
                                                 />
                                             )}
                                     </div>
-
+                                    {/* 
                                     <div className="flex items-center mt-6">
                                         <CheckBox
                                             id="generate_pass"
+                                            checked={this.state.send_email}
                                             onChange={() => {
-                                                const rand = Math.random()
-                                                    .toString(36)
-                                                    .slice(-8);
-                                                setFieldValue("password", rand);
-                                                setFieldValue(
-                                                    "confirm_password",
-                                                    rand
-                                                );
+                                                this.setState({
+                                                    send_email: !this.state
+                                                        .send_email
+                                                });
                                             }}
                                         />
                                         <label
                                             htmlFor="generate_pass"
                                             className="pl-3 label"
                                         >
-                                            Generate password
+                                            Send email inviation
                                         </label>
-                                    </div>
+                                    </div> */}
                                     <div className="flex justify-end mt-6 mb-3">
                                         <Button type="submit" loading={loading}>
                                             Create

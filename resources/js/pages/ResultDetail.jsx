@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import GlobalLoading from "../components/GlobalLoading";
 import moment from "moment";
 import CompanyLayout from "../pageComponents/CompanyLayout";
+import { withRouter } from "react-router-dom";
+import ContextWrapper from "../context/ContextWrapper";
 
 class ResultDetail extends Component {
     constructor(props) {
@@ -18,32 +20,59 @@ class ResultDetail extends Component {
     }
     componentDidMount() {
         let { id, user_id } = this.props.match.params;
-
+        this.fetchUser(user_id);
+    }
+    fetchUser(id) {
         window.axios
-            .get(window.baseURL + "/company/user/get_user_result", {
+            .post(window.apiURL, {
+                method: "get_detail_user",
                 params: {
-                    user_id: user_id,
-                    result_id: id
+                    session_token: this.props.auth.token,
+                    user_id: id
                 }
             })
             .then(rs => {
-                this.setState({
-                    result: rs.data.result,
-                    result_detail: rs.data.result_detail,
-                    user: rs.data.user,
-                    levels_negative: rs.data.levels_negative,
-                    levels_positive: rs.data.levels_positive
-                });
+                if (rs.data.result_code == 1) {
+                    this.setState({
+                        user: rs.data.result_data
+                    });
+
+                    this.fetchResult(id);
+                } else {
+                    this.props.notify.error(
+                        "Fail to retrive data. Please try again!"
+                    );
+                }
+            })
+            .catch(() => {
+                this.props.notify.error();
             });
     }
-
+    fetchResult() {
+        let { id } = this.props.match.params;
+        window.axios
+            .post(window.baseURL + "/api/results_detail", {
+                result_id: id
+            })
+            .then(rs => {
+                this.setState({
+                    result_detail: rs.data.result_detail,
+                    levels_positive: rs.data.levels_positive,
+                    levels_negative: rs.data.levels_negative,
+                    result: rs.data.result
+                });
+            })
+            .catch(() => {
+                this.props.notify.error();
+            });
+    }
     render() {
         const { loading, user, result } = this.state;
         return (
             <CompanyLayout>
                 {loading && <GlobalLoading title="Loading" />}
                 {!loading && (
-                    <div className="w-full ml-56 mr-3">
+                    <div className="w-full ml-64 mr-3 ">
                         <div className="border-b-2 px-3 py-4 ">
                             <div className="font-semibold text-lg">
                                 {user.name}
@@ -90,12 +119,7 @@ class ResultDetail extends Component {
     }
 
     RenderRow() {
-        const {
-            result,
-            result_detail,
-            levels_positive,
-            levels_negative
-        } = this.state;
+        const { result_detail, levels_positive, levels_negative } = this.state;
         return result_detail.map((rs, index) => (
             <tr className="hover:bg-gray-100" key={rs.id}>
                 <td className="px-6 py-4 whitespace-no-wrap">
@@ -124,4 +148,4 @@ class ResultDetail extends Component {
     }
 }
 
-export default ResultDetail;
+export default withRouter(ContextWrapper(ResultDetail));

@@ -130,4 +130,68 @@ class UserController extends Controller
             'message' => "OK"
         ]);
     }
+
+
+    public function get_result(Request $rq)
+    {
+        $user_id = $rq->user_id;
+
+        $results  = Result::where('user_id', $user_id)->get();
+
+        return response()->json([
+            "results" => $results
+        ]);
+    }
+
+    public function results_detail(Request $rq)
+    {
+        $result_id = $rq->result_id;
+        $user_id = $rq->user_id;
+
+        $result_detail = Question::with(['result'  => function ($query) use ($result_id) {
+            $query->where('result_id', $result_id);
+        }])->where('lang', 3)->where('status', 1)->where('category', 1)->orderBy('unique_group', 'asc')->get()->toArray();
+
+        $levels_positive = Level::where('lang', 3)->where('category', 1)->where("type", 1)->orderBy('group', 'asc')->get()->toArray();
+        $levels_negative = Level::where('lang', 3)->where('category', 1)->where("type", -1)->orderBy('group', 'asc')->get()->toArray();
+
+        $result = Result::where('id', $result_id)->first();
+        return response()->json([
+            "result_detail" => $result_detail,
+            "levels_positive" => $levels_positive,
+            "levels_negative" => $levels_negative,
+            'result' => $result
+        ]);
+    }
+
+    public function delete_results_detail(Request $rq)
+    {
+        $result_id = $rq->result_id;
+        $user_id = $rq->user_id;
+        $time = $rq->time;
+
+        if ($time == 1) {
+            $result = Result::where('id', $result_id)->first();
+            $result->delete();
+
+            ResultDetail::where("result_id",  $result_id)->delete();
+
+            $result_2 = Result::where('user_id', $user_id)->where('number_of_times', 2)->first();
+
+            if ($result_2 !== null) {
+                $result_2->number_of_times = 1;
+                $result_2->save();
+            }
+        }
+        if ($time == 2) {
+            $result = Result::where('id', $result_id)->first();
+            $result->delete();
+
+            ResultDetail::where("result_id",  $result_id)->delete();
+        }
+
+        return response()->json([
+            'message' => "OK"
+        ]);
+    }
 }

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersRawResultExport;
 use App\Http\Controllers\Controller;
 use App\Models\Result;
 use App\Models\ResultDetail;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -30,6 +32,34 @@ define('ARROW_RIGHT', '→');
 
 class CalculationController extends Controller
 {
+
+    public function exportraw(Request $req)
+    {
+        //delete 
+        $files = storage_path('app/userdata/');
+        $this->deleteDirectory($files); // delete file
+
+        $zip = new \ZipArchive();
+        $zip_file = 'Summary_Raw_Result.zip';
+        $zip->open($zip_file, \ZipArchive::CREATE  | \ZipArchive::OVERWRITE);
+
+
+        $data = $req->data;
+        $auth = $req->auth;
+        foreach ($data as $key => $user) {
+            $results = Result::where('user_id', $user['user_id'])->get()->toArray();
+            foreach ($results as $key => $value) {
+                $file_name = $user['name'] . ' - No. ' . $value['number_of_times'] . ' .xlsx';
+                Excel::store(new UsersRawResultExport($user, $value['id'], $auth), $file_name);
+                $zip->addFile(storage_path('app/' .  $file_name),  $file_name);
+            }
+        }
+        $zip->close();
+
+        return response()->download($zip_file);
+    }
+
+
 
     public function summaryExcel(Request $req)
     {
@@ -788,5 +818,28 @@ class CalculationController extends Controller
             return array_merge($origin, $stylesDecrease);
         }
         return $origin;
+    }
+
+    function deleteDirectory($dir)
+    {
+        if (!file_exists($dir)) {
+            return true;
+        }
+
+        if (!is_dir($dir)) {
+            return unlink($dir);
+        }
+
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+
+            if (!$this->deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                return false;
+            }
+        }
+
+        return rmdir($dir);
     }
 }

@@ -7,7 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="{{ asset('public/css/global.css') }}">
-    <title>Document</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('public/images/favicon-16x16.png') }}">
+    <title>Speedup</title>
 </head>
 
 <body>

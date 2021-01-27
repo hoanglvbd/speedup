@@ -25,7 +25,8 @@ const company_nameSchema = Yup.object({
     max_users: Yup.number()
         .typeError("Must be a number")
         .required("Cannnot leave it blank")
-        .positive("Must be positive number")
+        .min(0, "Rang 0 -> 100")
+        .max(100, "Rang 0 -> 100")
         .integer("Must be a number"),
     address: Yup.string().required("Company address is required"),
     contact_name: Yup.string().required("Contact name is required"),
@@ -39,7 +40,8 @@ const company_nameSchemaEdit = Yup.object({
     max_users: Yup.number()
         .typeError("Must be a number")
         .required("Cannnot leave it blank")
-        .positive("Must be positive number")
+        .min(0, "Rang 0 -> 100")
+        .max(100, "Rang 0 -> 100")
         .integer("Must be a number"),
     address: Yup.string().required("Company address is required"),
     contact_name: Yup.string().required("Contact name is required")
@@ -69,7 +71,7 @@ class SupperAdminCompany extends Component {
                 company_name: "",
                 email: "",
                 max_users: "",
-                total_users: "desc"
+                total_member: "desc"
             }
         };
         this.fetchData = this.fetchData.bind(this);
@@ -108,14 +110,14 @@ class SupperAdminCompany extends Component {
                 if (sort.max_users == "asc") {
                     Copy.sort((a, b) => a.max_users - b.max_users);
                 } else {
-                    Copy.sort((a, b) => a.max_users - b.max_users);
+                    Copy.sort((a, b) => b.max_users - a.max_users);
                 }
             }
-            if (sort.total_users !== "") {
-                if (sort.total_users == "asc") {
-                    Copy.sort((a, b) => a.total_users - b.total_users);
+            if (sort.total_member !== "") {
+                if (sort.total_member == "asc") {
+                    Copy.sort((a, b) => a.total_member - b.total_member);
                 } else {
-                    Copy.sort((a, b) => a.total_users - b.total_users);
+                    Copy.sort((a, b) => b.total_member - a.total_member);
                 }
             }
             this.setState({
@@ -136,7 +138,7 @@ class SupperAdminCompany extends Component {
                         size_page: this.state.itemPerPage,
                         current_page:
                             this.state.offset / this.state.itemPerPage,
-                        company_name: this.state.search
+                        key: this.state.search.trim()
                     }
                 });
                 this.setState({
@@ -346,9 +348,9 @@ class SupperAdminCompany extends Component {
                                                                             ? "asc"
                                                                             : "desc",
                                                                     email: "",
-                                                                    total_users:
-                                                                        "",
                                                                     max_users:
+                                                                        "",
+                                                                    total_member:
                                                                         ""
                                                                 }
                                                             });
@@ -390,9 +392,9 @@ class SupperAdminCompany extends Component {
                                                                         "desc"
                                                                             ? "asc"
                                                                             : "desc",
-                                                                    total_users:
-                                                                        "",
                                                                     max_users:
+                                                                        "",
+                                                                    total_member:
                                                                         ""
                                                                 }
                                                             });
@@ -434,7 +436,7 @@ class SupperAdminCompany extends Component {
                                                                             ? "asc"
                                                                             : "desc",
                                                                     email: "",
-                                                                    total_users:
+                                                                    total_member:
                                                                         ""
                                                                 }
                                                             });
@@ -472,23 +474,23 @@ class SupperAdminCompany extends Component {
                                                                 sort: {
                                                                     company_name:
                                                                         "",
-                                                                    total_users:
-                                                                        sort.total_users ===
+                                                                    max_users:
+                                                                        "",
+                                                                    email: "",
+                                                                    total_member:
+                                                                        sort.total_member ===
                                                                         "desc"
                                                                             ? "asc"
-                                                                            : "desc",
-                                                                    email: "",
-                                                                    max_users:
-                                                                        ""
+                                                                            : "desc"
                                                                 }
                                                             });
                                                         }}
                                                         className="flex items-center cursor-pointer"
                                                     >
                                                         Total Users
-                                                        {sort.total_users !==
+                                                        {sort.total_member !==
                                                             "" &&
-                                                            (sort.total_users ==
+                                                            (sort.total_member ==
                                                             "desc" ? (
                                                                 <img
                                                                     src={
@@ -1096,7 +1098,7 @@ class SupperAdminCompany extends Component {
                     </td>
                     <td className="px-6 py-4 whitespace-no-wrap">
                         <div className="text-sm leading-5 text-gray-900">
-                            {company.total_users}
+                            {company.total_member}
                         </div>
                     </td>
                     <td className="px-6 py-4 whitespace-no-wrap text-right flex items-center gap-3">

@@ -34,4 +34,9 @@ class CompanyController extends CalculationController
     {
         return $this->summaryExcel($req);
     }
+
+    public function Company_exportraw(Request $req)
+    {
+        return $this->exportraw($req);
+    }
 }

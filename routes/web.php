@@ -22,6 +22,9 @@ Route::get('/Summary_result_No_1_2.xlsx', function () {
 Route::get('/Summary_result_No_1.xlsx', function () {
     return response()->download("Summary_result_No_1.xlsx");
 });
+Route::get('/Summary_Raw_Result.zip', function () {
+    return response()->download("Summary_Raw_Result.zip");
+});
 
 Route::prefix('/')->group(function () {
     Route::get('/', function () {
@@ -70,10 +73,25 @@ Route::prefix('/company')->group(function () {
     Route::get('/users/list', function () {
         return view('app');
     });
+    Route::get('/users/list', function () {
+        return view('app');
+    });
+    Route::get('/users/pending-invite', function () {
+        return view('app');
+    });
+    Route::get('/users/{id}/detail/{result_id}', function () {
+        return view('app');
+    });
+    Route::get('/users/{id}', function () {
+        return view('app');
+    });
 });
 Route::prefix('/api')->group(function () {
     Route::get('/get_number_of_time', [UserController::class, 'get_number_of_time']);
     Route::get('/getQuestions', [UserController::class, 'getQuestions']);
+    Route::post('/results', [UserController::class, 'get_result']);
+    Route::post('/results_detail', [UserController::class, 'results_detail']);
+    Route::delete('/result_detail', [UserController::class, 'delete_results_detail']);
 
     Route::get('/temp', [UserController::class, 'getTemp']);
     Route::post('/temp', [UserController::class, 'createTemp']);
@@ -82,8 +100,7 @@ Route::prefix('/api')->group(function () {
 
 
     Route::post('/submit', [UserController::class, 'submit']);
-
     Route::post('/get_user', [CompanyController::class, 'get_user']);
-
     Route::post('/export/summaryExcel', [CompanyController::class, 'Company_summaryExcel']);
+    Route::post('/export/exportraw', [CompanyController::class, 'Company_exportraw']);
 });

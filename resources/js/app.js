@@ -23,6 +23,9 @@ import SupperAdminSpeedUpQuestion from "./pages/SupperAdminSpeedUpQuestion";
 import SupperAdminUsers from "./pages/SupperAdminUsers";
 import UserCompanyList from "./pages/UserCompanyList";
 import UserCompanyCreate from "./pages/UserCompanyCreate";
+import UserCompanyPending from "./pages/UserCompanyPending";
+import UserDetail from "./pages/UserDetail";
+import ResultDetail from "./pages/ResultDetail";
 const notifySuccess = (message = "Success") => {
     toast(message, {
         autoClose: "5000",
@@ -191,10 +194,28 @@ class App extends Component {
                                                             <UserCompanyList />
                                                         </Route>
                                                         <Route
+                                                            path="/company/users/pending-invite"
+                                                            exact
+                                                        >
+                                                            <UserCompanyPending />
+                                                        </Route>
+                                                        <Route
                                                             path="/company/users/add"
                                                             exact
                                                         >
                                                             <UserCompanyCreate />
+                                                        </Route>
+                                                        <Route
+                                                            path="/company/users/:user_id/detail/:id"
+                                                            exact
+                                                        >
+                                                            <ResultDetail />
+                                                        </Route>
+                                                        <Route
+                                                            path="/company/users/:id"
+                                                            exact
+                                                        >
+                                                            <UserDetail />
                                                         </Route>
                                                         <Redirect to="/company/users/list" />
                                                     </Switch>

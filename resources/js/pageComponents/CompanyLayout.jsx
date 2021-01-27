@@ -13,7 +13,7 @@ class CompanyLayout extends Component {
         const { showUsers } = this.state;
         return (
             <>
-                <nav className="w-48 fixed left-0 bg-white border-gray-100 shadow h-full flex flex-col p-3">
+                <nav className="w-56 fixed left-0 bg-white border-gray-100 shadow h-full flex flex-col p-3">
                     <Link
                         to={window.baseURL + "/company"}
                         className="text-main flex items-center"
@@ -34,7 +34,9 @@ class CompanyLayout extends Component {
                             (this.props.location.pathname ==
                                 "/company/users/add" ||
                             this.props.location.pathname ==
-                                "/company/users/list"
+                                "/company/users/list" ||
+                            this.props.location.pathname ==
+                                "/company/users/pending-invite"
                                 ? "active"
                                 : "") + " navbar cursor-pointer"
                         }
@@ -47,7 +49,9 @@ class CompanyLayout extends Component {
                             this.props.location.pathname ==
                                 "/company/users/add" ||
                             this.props.location.pathname ==
-                                "/company/users/list"
+                                "/company/users/list" ||
+                            this.props.location.pathname ==
+                                "/company/users/pending-invite"
                         }
                     >
                         <div className="flex flex-col">
@@ -60,7 +64,18 @@ class CompanyLayout extends Component {
                                         : "") + " navbar ml-3"
                                 }
                             >
-                                Create Users
+                                Create member
+                            </Link>
+                            <Link
+                                to={"/company/users/pending-invite"}
+                                className={
+                                    (this.props.location.pathname ==
+                                    "/company/users/pending-invite"
+                                        ? "active"
+                                        : "") + " navbar ml-3"
+                                }
+                            >
+                                List Pending member
                             </Link>
                             <Link
                                 to={"/company/users/list"}
@@ -71,7 +86,7 @@ class CompanyLayout extends Component {
                                         : "") + " navbar ml-3"
                                 }
                             >
-                                List Users
+                                List members
                             </Link>
                         </div>
                     </Collapse>

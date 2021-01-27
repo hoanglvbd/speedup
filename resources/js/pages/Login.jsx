@@ -44,6 +44,7 @@ class Login extends Component {
                             username: data.username,
                             name: data.name,
                             email: data.email,
+                            max_users: data.max_users,
                             joindate: data.joindate
                         };
                         localStorage.setItem(

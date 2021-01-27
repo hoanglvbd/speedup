@@ -58,6 +58,7 @@ class UserCompanyList extends Component {
         this.renderHeader = this.renderHeader.bind(this);
         this.renderBody = this.renderBody.bind(this);
         this.downloadExcel = this.downloadExcel.bind(this);
+        this.downloadRaw = this.downloadRaw.bind(this);
     }
 
     componentDidMount() {
@@ -199,8 +200,15 @@ class UserCompanyList extends Component {
     async handleDelete() {
         const { currentUser, deleteType, forceRender } = this.state;
         try {
-            const rs = await window.axios.delete(
-                window.baseURL + "/company/users?id=",
+            const rs = await window.axios.post(window.apiURL, {
+                method: "remove_user",
+                params: {
+                    session_token: this.props.auth.token,
+                    user_id: currentUser.user_id,
+                    company_id: this.props.auth.user.id
+                }
+            });
+            /*   window.baseURL + "/company/users?id=",
                 {
                     params: {
                         id:
@@ -209,16 +217,17 @@ class UserCompanyList extends Component {
                                 : JSON.stringify(this.checkToArray()),
                         type: deleteType
                     }
-                }
-            );
-            if (rs.data.statusCode == 200) {
+                } */
+            if (rs.data.result_code == 1) {
+                this.props.notify.success(rs.data.result_message_text);
+
                 this.setState({
                     showModalDelete: false,
-                    selectedUsers: [],
-                    forceRender: forceRender + 1
+                    selectedUsers: []
                 });
                 this.fetchUsers();
-                this.props.notify.success("Delete successfully");
+            } else {
+                this.props.notify.error(rs.data.result_message_text);
             }
         } catch (error) {
             this.props.notify.error();
@@ -240,6 +249,16 @@ class UserCompanyList extends Component {
                 }
             });
     }
+    downloadRaw() {
+        window.axios
+            .post(window.baseURL + "/api/export/exportraw", {
+                data: this.checkToArray(),
+                auth: this.props.auth.user
+            })
+            .then(rs => {
+                window.open(window.baseURL + "/Summary_Raw_Result.zip");
+            });
+    }
     render() {
         const {
             forceRender,
@@ -258,7 +277,7 @@ class UserCompanyList extends Component {
         } = this.state;
         return (
             <CompanyLayout>
-                <div className="w-full ml-56 mr-3">
+                <div className="w-full ml-64 mr-3">
                     <div className="flex justify-between items-center mx-auto py-6">
                         <h1 className="text-base font-bold leading-tight text-gray-900">
                             Users Management
@@ -348,12 +367,12 @@ class UserCompanyList extends Component {
                                     }
                                 >
                                     <button
-                                        /*  href={
-                                            window.baseURL +
-                                            "/api/export/summaryExcel?num=1&user_id=" +
-                                            this.checkToArray()
-                                        } */
                                         onClick={() => this.downloadExcel(1)}
+                                        disabled={
+                                            !selectedUsers.some(
+                                                r => r.results_count >= 1
+                                            )
+                                        }
                                         className={
                                             (selectedUsers.some(
                                                 r => r.results_count >= 1
@@ -373,12 +392,12 @@ class UserCompanyList extends Component {
                                         Download Summary Result No. 1
                                     </button>
                                     <button
-                                        /*   href={
-                                            window.baseURL +
-                                            "/api/export/summaryExcel?num=2&user_id=" +
-                                            this.checkToArray()
-                                        } */
                                         onClick={() => this.downloadExcel(2)}
+                                        disabled={
+                                            !selectedUsers.some(
+                                                r => r.results_count >= 2
+                                            )
+                                        }
                                         className={
                                             (selectedUsers.some(
                                                 r => r.results_count == 2
@@ -397,9 +416,34 @@ class UserCompanyList extends Component {
                                     >
                                         Download Summary Result No. 2
                                     </button>
+                                    <button
+                                        disabled={
+                                            !selectedUsers.some(
+                                                r => r.results_count >= 1
+                                            )
+                                        }
+                                        onClick={() => this.downloadRaw()}
+                                        className={
+                                            (selectedUsers.some(
+                                                r => r.results_count >= 1
+                                            )
+                                                ? ""
+                                                : " cursor-not-allowed opacity-50") +
+                                            " hover:bg-gray-300 block  whitespace-no-wrap items-center justify-center px-4 py-1 border border-transparent text-sm leading-6 font-medium transition ease-in-out duration-150 w-full text-left"
+                                        }
+                                        title={
+                                            selectedUsers.some(
+                                                r => r.results_count >= 1
+                                            )
+                                                ? ""
+                                                : "None of selected users has results No.2"
+                                        }
+                                    >
+                                        Download Raw Result
+                                    </button>
                                 </Dropdown>
                                 <div className="mx-3">
-                                    <Button
+                                    {/* <Button
                                         disabled={selectedUsers.length == 0}
                                         onClick={() =>
                                             this.setState({
@@ -418,8 +462,8 @@ class UserCompanyList extends Component {
                                             width="15px"
                                             className="mr-3"
                                         />
-                                        Delete
-                                    </Button>
+                                        Remove member
+                                    </Button> */}
                                 </div>
                             </div>
                         </div>
@@ -655,7 +699,7 @@ class UserCompanyList extends Component {
                             className="flex text-blue-600 text-sm font-semibold hover:underline"
                             href={
                                 window.baseURL +
-                                "/company/users/detail/" +
+                                "/company/users/" +
                                 user.user_id
                             }
                             target="_blank"
@@ -686,26 +730,6 @@ class UserCompanyList extends Component {
                     </td>
                     <td className="px-2 py-4 whitespace-no-wrap text-right text-sm leading-5 font-medium flex items-center justify-center">
                         <MoreVert>
-                            <a
-                                href={
-                                    window.baseURL +
-                                    "/admin/export/exportselectedinfo?user_id=" +
-                                    user.id
-                                }
-                                className="text-left border-b p-3  text-sm "
-                            >
-                                Download Infomation
-                            </a>
-                            <a
-                                href={
-                                    window.baseURL +
-                                    "/admin/export/exportselectedrawresult?user_id=" +
-                                    user.id
-                                }
-                                className="text-left border-b p-3  text-sm "
-                            >
-                                Download Raw Results
-                            </a>
                             <button
                                 onClick={() => {
                                     this.setState({
@@ -716,7 +740,7 @@ class UserCompanyList extends Component {
                                 }}
                                 className="text-left text-red-600 p-3 text-sm font-semibold   hover:text-red-900"
                             >
-                                Delete
+                                Remove member
                             </button>
                         </MoreVert>
                     </td>

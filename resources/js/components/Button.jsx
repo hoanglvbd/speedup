@@ -19,7 +19,7 @@ const Button = React.forwardRef(
             <button
                 ref={ref}
                 {...props}
-                disabled={disabled}
+                disabled={disabled || loading}
                 className={
                     (backgroundColor !== "" ? backgroundColor : " bg-main ") +
                     (textColor !== "" ? textColor : " text-white ") +

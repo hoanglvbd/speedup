@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Dropdown from "../components/Dropdown";
 import ContextWrapper from "../context/ContextWrapper";
+import { withTranslation } from "react-i18next";
 
 class UserHeader extends Component {
     constructor(props) {
@@ -50,7 +51,7 @@ class UserHeader extends Component {
                                         " hover:text-red-300 block  text-red-600 whitespace-no-wrap items-center justify-center border border-transparent text-sm leading-6 font-medium transition ease-in-out duration-150 w-full text-left"
                                     }
                                 >
-                                    Sign out
+                                    {this.props.t("sign_out")}
                                 </a>
                             </Dropdown>
                         </div>
@@ -61,4 +62,4 @@ class UserHeader extends Component {
     }
 }
 
-export default ContextWrapper(UserHeader);
+export default ContextWrapper(withTranslation()(UserHeader));

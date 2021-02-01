@@ -8,7 +8,8 @@ const Pagination = ({
     data = [],
     itemsPerPage,
     itemsPerPageComponent,
-    onChange
+    onChange,
+    mb = "mb-48"
 }) => {
     const handlePageClick = data => {
         let selected = data.selected;
@@ -16,7 +17,12 @@ const Pagination = ({
         onChange(offset);
     };
     return (
-        <div className="shadow border border-gray-200 bg-white px-4 py-3 flex items-center justify-between sm:px-6 mb-48 whitespace-no-wrap">
+        <div
+            className={
+                mb +
+                " shadow border border-gray-200 bg-white px-4 py-3 flex items-center justify-between sm:px-6  whitespace-no-wrap"
+            }
+        >
             <div className="flex-1 flex items-center justify-between ">
                 <div>{itemsPerPageComponent}</div>
                 <div>

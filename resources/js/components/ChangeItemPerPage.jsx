@@ -122,20 +122,6 @@ class ChangeItemPerPage extends Component {
                                 >
                                     250
                                 </button>
-                                <button
-                                    type="button"
-                                    href="#"
-                                    onClick={() => {
-                                        onClick("All", false);
-                                        this.setState({
-                                            show: false
-                                        });
-                                    }}
-                                    className="dropdown-item"
-                                    role="menuitem"
-                                >
-                                    All
-                                </button>
                             </div>
                         </div>
                     </motion.div>

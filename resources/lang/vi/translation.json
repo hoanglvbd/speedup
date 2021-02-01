@@ -1,5 +1,1 @@
-{
-    "test_page": {
-        "header": "X-Finder トランスフォーメーションマインドセットアセスメント"
-    }
-}
+{"email_required":"Vui l\u00f2ng nh\u1eadp Emailvn","email_invalid":"\u0110\u1ecbnh d\u1ea1ng Email kh\u00f4ng \u0111\u00fang","password_required":"Vui l\u00f2ng nh\u1eadp m\u1eadt kh\u1ea9u","login":"\u0110\u0103ng nh\u1eadp","header":"Ch\u00e0o m\u1eebng b\u1ea1n \u0111\u1ebfn v\u1edbi Speed Uphahaha","subheader":"Speed Up  x  Viecoi","remain_attempt":"S\u1ed1 l\u01b0\u1ee3t c\u00f2n l\u1ea1i","out_of_attempt":"H\u1ebft l\u01b0\u1ee3t l\u00e0m ki\u1ec3m tra","start":"B\u1eaft \u0111\u1ea7u l\u00e0m ki\u1ec3m tra","sign_out":"\u0110\u0103ng xu\u1ea5t","auto_save":"T\u1ef1 \u0111\u1ed9ng l\u01b0u k\u1ebft qu\u1ea3","submit":"G\u1eedi","welcome_back":"Ch\u00e0o m\u1eebng b\u1ea1n quay tr\u1edf l\u1ea1i","pick_up_where_you_left_off":"Ti\u1ebfp t\u1ee5c l\u00e0m ki\u1ec3m tra","continue":"Ti\u1ebfp t\u1ee5c","submit_success":"C\u1ea3m \u01a1n b\u1ea1n \u0111\u00e3 l\u00e0m ki\u1ec3m tra"}

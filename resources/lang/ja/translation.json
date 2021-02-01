@@ -1,16 +1,1 @@
-{
-    "email_required": "Email is required",
-    "password_required": "Password is required",
-    "login": "login",
-    "header": "X-Finder トランスフォーメーションマインドセットアセスメント",
-    "subheader": "© 2020 Spice Up Japan, Inc.",
-    "remain_attempt": "Remain attempt",
-    "start": "Start",
-    "sign_out": "Sign out",
-    "auto_save": "Auto save",
-    "submit": "Submit",
-    "welcome_back": "Welcome Back",
-    "pick_up_where_you_left_off": "pick_up_where_you_left_off",
-    "continue": "Continue",
-    "submit_success": "Thank you"
-}
+{"email_required":"Email is requiredja","email_invalid":"Invalid email ja","password_required":"Password is required","login":"login","header":"X-Finder \u30c8\u30e9\u30f3\u30b9\u30d5\u30a9\u30fc\u30e1\u30fc\u30b7\u30e7\u30f3\u30de\u30a4\u30f3\u30c9\u30bb\u30c3\u30c8\u30a2\u30bb\u30b9\u30e1\u30f3\u30c8d","subheader":"\u00a9 2020 Spice Up Japan, Inc.","remain_attempt":"Remain attempt","out_of_attempt":"Out of attempt","start":"Start","sign_out":"Sign out","auto_save":"Auto save","submit":"Submit","welcome_back":"Welcome Back","pick_up_where_you_left_off":"pick_up_where_you_left_off","continue":"Continue","submit_success":"Thank you"}

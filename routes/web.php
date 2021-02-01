@@ -57,6 +57,10 @@ Route::prefix('/admin')->group(function () {
     Route::get('/questions/speedup', function () {
         return view('app');
     });
+    Route::get('/translation', function () {
+        return view('app');
+    });
+
     Route::get('/getQuestions', [SupperAdminController::class, 'getQuestions']);
     Route::put('/getQuestions', [SupperAdminController::class, 'editQuestions']);
 });
@@ -103,4 +107,7 @@ Route::prefix('/api')->group(function () {
     Route::post('/get_user', [CompanyController::class, 'get_user']);
     Route::post('/export/summaryExcel', [CompanyController::class, 'Company_summaryExcel']);
     Route::post('/export/exportraw', [CompanyController::class, 'Company_exportraw']);
+
+    Route::post('/get_translation', [SupperAdminController::class, 'get_translation']);
+    Route::put('/edit_translation', [SupperAdminController::class, 'edit_translation']);
 });

@@ -1,7 +1,12 @@
 import React from "react";
 import Input from "../components/Input";
 
-const SearchBar = ({ handleSearch, value, onChange }) => {
+const SearchBar = ({
+    handleSearch,
+    placehoder = "Search, ....",
+    value,
+    onChange
+}) => {
     const handleSubmit = event => {
         event.preventDefault();
         handleSearch();
@@ -10,7 +15,7 @@ const SearchBar = ({ handleSearch, value, onChange }) => {
         <div className="relative">
             <form onSubmit={handleSubmit}>
                 <Input
-                    placeholder="Search, ...."
+                    placeholder={placehoder}
                     value={value}
                     extraClass="bg-white"
                     onChange={e => onChange(e.target.value)}

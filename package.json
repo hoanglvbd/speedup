@@ -49,6 +49,7 @@
         "react-switch": "^5.0.1",
         "react-toastify": "^6.0.9",
         "react-transition-group": "^1.2.1",
+        "react-virtualized": "^9.22.3",
         "reactstrap": "^8.6.0",
         "tailwindcss": "^1.9.5",
         "webpack-livereload-plugin": "^2.3.0",

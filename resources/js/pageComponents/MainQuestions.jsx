@@ -5,7 +5,7 @@ import Title from "../components/Title";
 import { motion } from "framer-motion";
 import { Button, FormControlLabel, Radio, RadioGroup } from "@material-ui/core";
 import ContextWrapper from "../context/ContextWrapper";
-
+import { withTranslation } from "react-i18next";
 const variants = {
     open: { opacity: 1, y: 0 },
     closed: {
@@ -20,7 +20,6 @@ class MainQuesions extends Component {
         super(props);
         this.state = {
             stage: parseInt(this.props.stage) || 0,
-            loading: false,
             showBottom: false,
             answers:
                 this.props.tempData !== null
@@ -47,11 +46,14 @@ class MainQuesions extends Component {
     setAllLevel() {
         let answerCopy = [...this.state.answers];
         for (let index = 0; index < answerCopy.length; index++) {
-            answerCopy[index].level = "6";
+            answerCopy[index].level = Math.floor(Math.random() * 6) + 1 + "";
         }
-        this.setState({
-            answers: answerCopy
-        });
+        this.setState(
+            {
+                answers: answerCopy
+            },
+            () => console.log("Level is set!")
+        );
     }
     componentDidMount() {
         setTimeout(() => {
@@ -67,6 +69,12 @@ class MainQuesions extends Component {
         }, 5000);
 
         window.addEventListener("scroll", this.scrollListener);
+
+        const ele = document.getElementById("ipl-progress-indicator");
+        if (ele) {
+            // fade out
+            ele.classList.add("available");
+        }
     }
     componentWillUnmount() {
         window.removeEventListener("scroll", this.scrollListener);
@@ -101,7 +109,7 @@ class MainQuesions extends Component {
         });
     }
 
-    handleSubmit() {
+    async handleSubmit() {
         const { answers } = this.state;
 
         for (let index = 0; index < answers.length; index++) {
@@ -120,33 +128,31 @@ class MainQuesions extends Component {
             }
         }
         if (!answers.some(e => e.level == 0)) {
-            this.setState(
-                {
-                    loading: true
-                },
-                async () => {
-                    try {
-                        const rs = await window.axios.post(
-                            window.baseURL + "/api/submit",
-                            {
-                                results: this.state.answers,
-                                user_id: this.props.auth.user.id
-                            }
-                        );
-                        this.props.onFinished();
-                    } catch (error) {
-                    } finally {
+            const ele = document.getElementById("ipl-progress-indicator");
+            if (ele) {
+                // fade out
+                ele.classList.remove("available");
+            }
+            try {
+                const rs = await window.axios.post(
+                    window.baseURL + "/api/submit",
+                    {
+                        results: this.state.answers,
+                        user_id: this.props.auth.user.id
                     }
-                }
-            );
+                );
+                ele.classList.add("available");
+                this.props.onFinished();
+            } catch (error) {
+                this.props.notify.error("Cannot save at this time!");
+            } finally {
+            }
         }
     }
     render() {
-        const { loading, showBottom, answers, yOffset } = this.state;
+        const { showBottom, answers, yOffset } = this.state;
         const { questions, levels_positive, levels_negative } = this.props;
-        return loading ? (
-            <GlobalLoading title="Saving your results..." />
-        ) : (
+        return (
             <div className="bg-gray-100">
                 <div className="pb-16 container h-full sm:w-176">
                     <div className="w-full h-full items-center">
@@ -191,7 +197,7 @@ class MainQuesions extends Component {
                         color="primary"
                         onClick={this.handleSubmit}
                     >
-                        Submit
+                        {this.props.t("submit")}
                     </Button>
 
                     <div className="fixed bottom-0 right-0 left-0 flex justify-center mb-6">
@@ -199,10 +205,10 @@ class MainQuesions extends Component {
                             variants={variants}
                             initial={{ opacity: 0, y: 50 }}
                             animate={showBottom ? "open" : "closed"}
-                            className="px-3 py-1 rounded-lg border-2 border-green-600 "
+                            className="px-3 py-1 rounded-lg border-2 border-green-600 bg-white"
                         >
                             <div className="text-green-600 font-semibold">
-                                Auto save
+                                {this.props.t("auto_save")}
                             </div>
                         </motion.div>
                     </div>
@@ -261,7 +267,7 @@ class MainQuesions extends Component {
     }
 }
 
-export default ContextWrapper(MainQuesions);
+export default ContextWrapper(withTranslation()(MainQuesions));
 
 const Answer = React.memo(
     ({ levels, value, index, onClick }) => {

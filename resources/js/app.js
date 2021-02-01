@@ -26,6 +26,35 @@ import UserCompanyCreate from "./pages/UserCompanyCreate";
 import UserCompanyPending from "./pages/UserCompanyPending";
 import UserDetail from "./pages/UserDetail";
 import ResultDetail from "./pages/ResultDetail";
+
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import translationEN from "../lang/en/translation.json";
+import translationJA from "../lang/ja/translation.json";
+import translationVI from "../lang/vi/translation.json";
+import SupperAdminTranslation from "./pages/SupperAdminTranslation";
+
+i18n.use(initReactI18next) // passes i18n down to react-i18next
+    .init({
+        resources: {
+            en: {
+                translation: translationEN
+            },
+            ja: {
+                translation: translationJA
+            },
+            vi: {
+                translation: translationVI
+            }
+        },
+        lng: "vi",
+        fallbackLng: "vi",
+
+        interpolation: {
+            escapeValue: false
+        }
+    });
+
 const notifySuccess = (message = "Success") => {
     toast(message, {
         autoClose: "5000",
@@ -83,7 +112,16 @@ class App extends Component {
                 <LanguageContext.Provider
                     value={{
                         lang,
-                        setLang: lang => this.setState({ lang: lang })
+                        setLang: lang => {
+                            if (lang == 1) {
+                                i18n.changeLanguage("vi");
+                            } else if (lang == 2) {
+                                i18n.changeLanguage("ja");
+                            } else {
+                                i18n.changeLanguage("en");
+                            }
+                            this.setState({ lang: lang });
+                        }
                     }}
                 >
                     <LoadingContext.Provider
@@ -168,7 +206,12 @@ class App extends Component {
                                                         >
                                                             <SupperAdminSpeedUpQuestion />
                                                         </Route>
-
+                                                        <Route
+                                                            path="/admin/translation"
+                                                            exact
+                                                        >
+                                                            <SupperAdminTranslation />
+                                                        </Route>
                                                         <Redirect to="/admin/company" />
                                                     </Switch>
                                                 ) : user.type == 1 ? (

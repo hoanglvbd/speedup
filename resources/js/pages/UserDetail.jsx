@@ -159,7 +159,11 @@ class UserDetail extends Component {
                                     <p className="font-medium text-gray-500 text-sm">
                                         Birthday
                                     </p>
-                                    <p>{user.birthday}</p>
+                                    <p>
+                                        {moment(user.birthday).format(
+                                            "DD/MM/YYYY"
+                                        )}
+                                    </p>
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
@@ -212,7 +216,7 @@ class UserDetail extends Component {
                                                                 N.o
                                                             </th>
                                                             <th className="whitespace-no-wrap w-20 px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                                                                Last updated
+                                                                Latest update
                                                             </th>
                                                             <th className="whitespace-no-wrap w-20 px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider"></th>
                                                         </tr>

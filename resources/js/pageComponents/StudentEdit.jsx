@@ -9,6 +9,8 @@ import Button from "../components/Button";
 import Select from "react-select";
 import GlobalLoading from "../components/GlobalLoading";
 import AppDatePicker from "../components/AppDatePicker";
+import ContextWrapper from "../context/ContextWrapper";
+import moment from "moment";
 
 const schema = Yup.object({
     email: Yup.string()
@@ -44,28 +46,30 @@ class StudentEdit extends Component {
             },
             async () => {
                 try {
-                    const rs = await window.axios.put(
-                        window.baseURL + "/admin/users",
-                        {
-                            id: this.props.user.user_id,
-                            username: values.username,
-                            organization: values.organization.value,
-                            name: values.name,
+                    const rs = await window.axios.post(window.apiURL, {
+                        method: "edit_user",
+                        params: {
+                            user_id: this.props.user.user_id,
+                            session_token: this.props.auth.token,
+                            email: values.email,
                             password: values.password,
-                            max_time: this.state.max_time
+                            name: values.name,
+                            birthday: moment(values.birthday).format(
+                                "YYYY-MM-DD"
+                            ),
+                            gender: values.gender,
+                            phone: values.phone,
+                            address: values.address,
+                            max_time: values.max_time
                         }
-                    );
-                    window.location.reload();
-                } catch (error) {
-                    if (error.status === 422) {
-                        this.setState({
-                            serverErors: error.data.errors
-                        });
+                    });
+                    if (rs.data.result_code == 1) {
+                        this.props.notify.success(rs.data.result_message_text);
                     } else {
-                        this.setState({
-                            severMessage: "Unkown error"
-                        });
+                        this.props.notify.error(rs.data.result_message_text);
                     }
+                } catch (error) {
+                    this.props.notify.error(error);
                 } finally {
                     this.setState({
                         loading: false
@@ -83,13 +87,7 @@ class StudentEdit extends Component {
 
     render() {
         const { visible, user, handleClose, resultCount } = this.props;
-        const {
-            serverErors,
-            showPassword,
-            loading,
-            severMessage,
-            max_time
-        } = this.state;
+        const { serverErors, showPassword, loading, severMessage } = this.state;
         return visible ? (
             <ModalContainer onClick={handleClose}>
                 {loading && (
@@ -171,6 +169,7 @@ class StudentEdit extends Component {
                                         placeholder="Email"
                                         name="email"
                                         title="Email"
+                                        disabled
                                         onChange={handleChange}
                                         onBlur={handleBlur}
                                         value={values.email}
@@ -255,7 +254,7 @@ class StudentEdit extends Component {
                                                 })
                                             }
                                             type="button"
-                                            className="absolute right-0 top-0 m-1 bg-white p-2"
+                                            className="absolute right-0 top-0 p-2"
                                         >
                                             <img
                                                 className="w-4"
@@ -280,7 +279,9 @@ class StudentEdit extends Component {
                             </div>
 
                             <div className="mt-6 flex justify-between border-t-2 border-blue-700 pt-3">
-                                <Button type="submit">Save</Button>
+                                <Button type="submit" loading={loading}>
+                                    Save
+                                </Button>
                             </div>
                         </form>
                     )}
@@ -290,4 +291,4 @@ class StudentEdit extends Component {
     }
 }
 
-export default StudentEdit;
+export default ContextWrapper(StudentEdit);

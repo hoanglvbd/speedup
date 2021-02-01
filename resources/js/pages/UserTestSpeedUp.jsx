@@ -17,7 +17,9 @@ const variants = {
         }
     }
 };
-
+const variantsHasTemp = {
+    open: { opacity: 1, y: 0, display: "flex" }
+};
 const STAGES = {
     SHOW_WELCOME: "SHOW_WELCOME",
     /*   LOAD_PRECAUTION: "LOAD_PRECAUTION", */
@@ -93,33 +95,46 @@ class UserTestSpeedUp extends Component {
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.lang.lang !== this.props.lang.lang) {
             if (this.state.stage == STAGES.SHOW_QUESTION) {
-                this.props.loader.setLoader(true);
-                this.loadQuestions();
+                let ele = document.getElementById("ipl-progress-indicator");
+                ele.classList.remove("available");
+
+                this.loadQuestions().then(() => {
+                    ele.classList.add("available");
+                });
             }
         }
     }
     async loadQuestions() {
-        const rs = await window.axios.get(
-            window.baseURL + "/api/getQuestions",
-            {
-                params: {
-                    lang: this.props.lang.lang,
-                    category: 1
-                }
-            }
-        );
-
-        this.setState(
-            {
-                stage: STAGES.SHOW_QUESTION,
-                questions: rs.data.questions,
-                levels_positive: rs.data.levels_positive,
-                levels_negative: rs.data.levels_negative,
-                questionStage: null,
-                questionCurrent: null
-            },
-            () => this.props.loader.setLoader(false)
-        );
+        return new Promise((resolve, reject) => {
+            window.axios
+                .get(window.baseURL + "/api/getQuestions", {
+                    params: {
+                        lang: this.props.lang.lang,
+                        category: 1
+                    }
+                })
+                .then(rs => {
+                    this.setState(
+                        {
+                            questions: rs.data.questions,
+                            levels_positive: rs.data.levels_positive,
+                            levels_negative: rs.data.levels_negative,
+                            questionStage: null,
+                            questionCurrent: null
+                        },
+                        () => {
+                            this.setState(
+                                {
+                                    stage: STAGES.SHOW_QUESTION
+                                },
+                                () => {
+                                    resolve();
+                                }
+                            );
+                        }
+                    );
+                });
+        });
     }
     render() {
         const {
@@ -148,10 +163,38 @@ class UserTestSpeedUp extends Component {
                                 onContinue={this.handleContinue}
                                 onClick={() => {
                                     this.createAutoSave();
+                                    let ele = document.getElementById(
+                                        "ipl-progress-indicator"
+                                    );
+                                    ele.classList.remove("available");
                                     this.loadQuestions();
                                 }}
                             />
                         </div>
+                        <motion.div
+                            variants={variantsHasTemp}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={showTemp ? "open" : ""}
+                            className="mb-20 hidden justify-center fixed bottom-0 left-0 right-0 "
+                        >
+                            <div className="px-20 py-4 rounded-lg text-center border-2 bg-white z-50 shadow">
+                                <div className="font-semibold text-lg">
+                                    Welcome back
+                                </div>
+                                <div>
+                                    <span>Pick up where you left off.</span>
+                                    <span className="text-gray-700 italic">
+                                        Today
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={this.handleContinue}
+                                    className="mt-6 focus:opacity-50 bg-white focus:outline-none focus:shadow-lg border-2 border-blue-700 text-blue-700 text-center font-semibold px-2 py-1 rounded"
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </motion.div>
                     </>
                 )}
                 {/*   {stage === STAGES.LOAD_PRECAUTION && (
@@ -165,9 +208,9 @@ class UserTestSpeedUp extends Component {
                         }}
                     />
                 )} */}
-                {stage === STAGES.LOAD_QUESTION && (
+                {/* {stage === STAGES.LOAD_QUESTION && (
                     <GlobalLoading title="Preparing questions" />
-                )}
+                )} */}
 
                 {stage === STAGES.SHOW_QUESTION && (
                     <MainQuestions

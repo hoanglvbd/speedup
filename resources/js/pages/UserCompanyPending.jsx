@@ -6,6 +6,7 @@ import Pagination from "../components/Pagination";
 import ContextWrapper from "../context/ContextWrapper";
 import CompanyLayout from "../pageComponents/CompanyLayout";
 import SearchBar from "../pageComponents/SearchBar";
+import moment from "moment";
 
 class UserCompanyPending extends Component {
     constructor(props) {
@@ -128,7 +129,7 @@ class UserCompanyPending extends Component {
                             {user.name}
                         </td>
                         <td className="px-6 py-4 whitespace-no-wrap text-sm ">
-                            {user.date_invite}
+                            {moment(user.date_invite).format("DD-MM-YYYY")}
                         </td>
                         <td className="px-6 py-4 whitespace-no-wrap text-sm ">
                             {user.count_time_invite}
@@ -222,7 +223,7 @@ class UserCompanyPending extends Component {
         } = this.state;
         return (
             <CompanyLayout>
-                <div className="w-full ml-64 mr-3">
+                <div className="w-full ml-64 mr-3 overflow-auto">
                     <div className="flex justify-between items-center mx-auto py-6">
                         <h1 className="text-base font-bold leading-tight text-gray-900">
                             Pending Users
@@ -238,7 +239,7 @@ class UserCompanyPending extends Component {
                     <div className="flex flex-col my-3">
                         <div className="py-2 align-middle inline-block min-w-full">
                             <div className="shadow  border-b border-gray-200 sm:rounded-lg">
-                                <table className="min-w-full divide-y divide-gray-200 ">
+                                <table className="min-w-full divide-y divide-gray-200 border">
                                     {this.renderHeader()}
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {tableLoading ? (

@@ -74,6 +74,17 @@ class SupperAdminLayout extends Component {
                     >
                         Users
                     </Link>
+                    <Link
+                        to={"/admin/translation"}
+                        className={
+                            (this.props.location.pathname ==
+                            "/admin/translation"
+                                ? "active"
+                                : "") + " navbar"
+                        }
+                    >
+                        Translation
+                    </Link>
                     <hr />
 
                     <a

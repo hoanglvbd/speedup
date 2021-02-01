@@ -121,7 +121,7 @@ class UserCompanyList extends Component {
                 total = total + 1;
             }
         });
-        if (total == incoming.length) {
+        if (total == incoming.length && total !== 0) {
             return true;
         }
         return false;
@@ -277,7 +277,7 @@ class UserCompanyList extends Component {
         } = this.state;
         return (
             <CompanyLayout>
-                <div className="w-full ml-64 mr-3">
+                <div className="w-full ml-64 mr-3 overflow-auto">
                     <div className="flex justify-between items-center mx-auto py-6">
                         <h1 className="text-base font-bold leading-tight text-gray-900">
                             Users Management
@@ -290,7 +290,7 @@ class UserCompanyList extends Component {
                             handleSearch={this.handleSearch}
                         />
                     </div>
-                    <div className="flex justify-between mt-3">
+                    {/*<div className="flex justify-between mt-3">
                         <div>
                             <div
                                 className="bg-white px-3 text-xs py-1 cursor-pointer flex items-center rounded-full border"
@@ -311,7 +311,7 @@ class UserCompanyList extends Component {
                             </div>
                         </div>
                     </div>
-
+ */}
                     <div className="flex flex-col my-3">
                         <div
                             className={
@@ -470,7 +470,7 @@ class UserCompanyList extends Component {
                         <div>
                             <div className="py-2 align-middle inline-block min-w-full">
                                 <div className="shadow  border-b border-gray-200 sm:rounded-lg">
-                                    <table className="min-w-full divide-y divide-gray-200 ">
+                                    <table className="min-w-full divide-y divide-gray-200 border">
                                         {this.renderHeader()}
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {tableLoading ? (

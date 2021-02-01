@@ -164,4 +164,49 @@ class SupperAdminController extends Controller
             ]);
         }
     }
+
+
+    public function get_translation(Request $rq)
+    {
+        $en = json_decode(file_get_contents(resource_path("lang/en/translation.json")), true);
+        $vi = json_decode(file_get_contents(resource_path("lang/vi/translation.json")), true);
+        $ja = json_decode(file_get_contents(resource_path("lang/ja/translation.json")), true);
+        return response()->json([
+            'en' => $en,
+            'vi' => $vi,
+            'ja' => $ja
+        ]);
+    }
+    public function edit_translation(Request $rq)
+    {
+        $data = $rq->data;
+        $en = $data["en"];
+        $vi = $data["vi"];
+        $ja = $data["ja"];
+
+        $object = new \stdClass();
+        foreach ($en as $key => $value) {
+            $object->{$value[0]} = $value[1];
+        }
+
+        file_put_contents(resource_path("lang/en/translation.json"), json_encode($object));
+
+        $object = new \stdClass();
+        foreach ($vi as $key => $value) {
+            $object->{$value[0]} = $value[1];
+        }
+
+        file_put_contents(resource_path("lang/vi/translation.json"), json_encode($object));
+
+        $object = new \stdClass();
+        foreach ($ja as $key => $value) {
+            $object->{$value[0]} = $value[1];
+        }
+
+        file_put_contents(resource_path("lang/ja/translation.json"), json_encode($object));
+
+        return response()->json([
+            'status' => "OK"
+        ]);
+    }
 }

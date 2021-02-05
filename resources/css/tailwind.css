@@ -1,6 +1,9 @@
 @tailwind base;
 
 @tailwind components;
+button:focus {
+    @apply outline-none;
+}
 
 body {
     word-break: break-word;

@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Button, FormControlLabel, Radio, RadioGroup } from "@material-ui/core";
 import ContextWrapper from "../context/ContextWrapper";
 import { withTranslation } from "react-i18next";
+import Typography from "@material-ui/core/Typography";
+
 const variants = {
     open: { opacity: 1, y: 0 },
     closed: {
@@ -40,10 +42,10 @@ class MainQuesions extends Component {
         this.handleAutoSave = this.handleAutoSave.bind(this);
         this.buttonRef = React.createRef();
         this.scrollListener = this.scrollListener.bind(this);
-        window.setAllLevel = this.setAllLevel.bind(this);
+        window.setAll = this.setAll.bind(this);
     }
 
-    setAllLevel() {
+    setAll() {
         let answerCopy = [...this.state.answers];
         for (let index = 0; index < answerCopy.length; index++) {
             answerCopy[index].level = Math.floor(Math.random() * 6) + 1 + "";
@@ -52,7 +54,7 @@ class MainQuesions extends Component {
             {
                 answers: answerCopy
             },
-            () => console.log("Level is set!")
+            () => console.log("All is set!")
         );
     }
     componentDidMount() {
@@ -155,7 +157,7 @@ class MainQuesions extends Component {
         return (
             <div className="bg-gray-100">
                 <div className="pb-16 container h-full sm:w-176">
-                    <div className="w-full h-full items-center">
+                    <div className="w-full items-center">
                         {questions.map((question, index) => (
                             <QuestionWrapper
                                 key={question.id}
@@ -164,9 +166,12 @@ class MainQuesions extends Component {
                                 }}
                                 error={answers[index].show_error}
                             >
-                                <Title number={index + 1}>
+                                {/*    <Title number={index + 1}>
                                     {question.question}
-                                </Title>
+                                </Title> */}
+                                <Typography variant="h6" gutterBottom>
+                                    {index + 1 + ". " + question.question}
+                                </Typography>
                                 <Answer
                                     levels={
                                         question.type == 1

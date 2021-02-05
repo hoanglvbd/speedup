@@ -14,7 +14,7 @@ class CompanyController extends CalculationController
 
 
         foreach ($data as $key => $value) {
-            $user_id = $value['user_id'];
+            $user_id = $value['emp_id_invited'];
 
             $result = Result::where('user_id', $user_id)->where('category', 1)->orderBy('created_at', 'desc')->get()->toArray();
             $data[$key]['results_count'] = count($result);

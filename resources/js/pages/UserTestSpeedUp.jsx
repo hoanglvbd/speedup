@@ -6,6 +6,9 @@ import Precaution from "../pageComponents/Precaution";
 import ShowNumberOfTime from "../pageComponents/ShowNumberOfTime";
 import MainQuestions from "../pageComponents/MainQuestions";
 import ShowFinish from "../pageComponents/ShowFinish";
+import Card from "@material-ui/core/Card";
+import { Button } from "@material-ui/core";
+import Paper from "@material-ui/core/Paper";
 
 const variants = {
     open: { opacity: 1, scale: 1, display: "block" },
@@ -84,8 +87,11 @@ class UserTestSpeedUp extends Component {
         }
     }
     handleContinue() {
-        this.props.loader.setLoader(true);
-        this.loadQuestions();
+        let ele = document.getElementById("ipl-progress-indicator");
+        ele.classList.remove("available");
+        this.loadQuestions().then(() => {
+            ele.classList.add("available");
+        });
     }
     createAutoSave() {
         window.axios.post(window.baseURL + "/api/temp", {
@@ -177,23 +183,28 @@ class UserTestSpeedUp extends Component {
                             animate={showTemp ? "open" : ""}
                             className="mb-20 hidden justify-center fixed bottom-0 left-0 right-0 "
                         >
-                            <div className="px-20 py-4 rounded-lg text-center border-2 bg-white z-50 shadow">
+                            <Paper
+                                elevation={5}
+                                className="px-10 py-4 text-center  z-50"
+                            >
                                 <div className="font-semibold text-lg">
                                     Welcome back
                                 </div>
-                                <div>
+                                <div className="mb-3">
                                     <span>Pick up where you left off.</span>
                                     <span className="text-gray-700 italic">
                                         Today
                                     </span>
                                 </div>
-                                <button
+                                <Button
+                                    color="primary"
+                                    variant="outlined"
                                     onClick={this.handleContinue}
-                                    className="mt-6 focus:opacity-50 bg-white focus:outline-none focus:shadow-lg border-2 border-blue-700 text-blue-700 text-center font-semibold px-2 py-1 rounded"
+                                    /*   className="mt-6 focus:opacity-50 bg-white focus:outline-none focus:shadow-lg border-2 border-blue-700 text-blue-700 text-center font-semibold px-2 py-1 rounded" */
                                 >
                                     Continue
-                                </button>
-                            </div>
+                                </Button>
+                            </Paper>
                         </motion.div>
                     </>
                 )}

@@ -47,7 +47,7 @@ class CalculationController extends Controller
         $data = $req->data;
         $auth = $req->auth;
         foreach ($data as $key => $user) {
-            $results = Result::where('user_id', $user['user_id'])->get()->toArray();
+            $results = Result::where('user_id', $user['emp_id_invited'])->get()->toArray();
             foreach ($results as $key => $value) {
                 $file_name = $user['name'] . ' - No. ' . $value['number_of_times'] . ' .xlsx';
                 Excel::store(new UsersRawResultExport($user, $value['id'], $auth), $file_name);
@@ -327,7 +327,7 @@ class CalculationController extends Controller
             $summary = [];
             foreach ($data as $key => $value) {
 
-                $first = Result::where('user_id', $value['user_id'])->where('number_of_times', 1)->first();
+                $first = Result::where('user_id', $value['emp_id_invited'])->where('number_of_times', 1)->first();
                 if ($first == null) continue;
 
                 $detail_first = ResultDetail::where("result_id", $first->id)->orderBy('question_group_id')->get()->toArray();
@@ -509,8 +509,8 @@ class CalculationController extends Controller
 
             $row_start = 2;
             foreach ($data as $key => $value) {
-                $first = Result::where('user_id', $value['user_id'])->where('number_of_times', 1)->first();
-                $second = Result::where('user_id', $value['user_id'])->where('number_of_times', 2)->first();
+                $first = Result::where('user_id', $value['emp_id_invited'])->where('number_of_times', 1)->first();
+                $second = Result::where('user_id', $value['emp_id_invited'])->where('number_of_times', 2)->first();
                 if ($first == null || $second == null) continue;
 
                 $detail_first = ResultDetail::where("result_id", $first->id)->orderBy('question_group_id')->get()->toArray();

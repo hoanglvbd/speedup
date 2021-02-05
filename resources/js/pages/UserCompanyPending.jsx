@@ -1,32 +1,280 @@
-import { Player } from "@lottiefiles/react-lottie-player";
 import React, { Component } from "react";
-import Button from "../components/Button";
-import ChangeItemPerPage from "../components/ChangeItemPerPage";
-import Pagination from "../components/Pagination";
+import {
+    Button,
+    FilledInput,
+    FormControl,
+    InputAdornment,
+    InputLabel,
+    Paper,
+    Typography,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    Checkbox,
+    TableSortLabel,
+    TableBody,
+    TablePagination,
+    Toolbar,
+    makeStyles,
+    lighten,
+    Menu,
+    MenuItem,
+    withStyles,
+    CircularProgress
+} from "@material-ui/core";
+import SearchIcon from "@material-ui/icons/Search";
+import FilterListIcon from "@material-ui/icons/FilterList";
+import IconButton from "@material-ui/core/IconButton";
 import ContextWrapper from "../context/ContextWrapper";
-import CompanyLayout from "../pageComponents/CompanyLayout";
-import SearchBar from "../pageComponents/SearchBar";
 import moment from "moment";
+import Tooltip from "@material-ui/core/Tooltip";
+import DeleteIcon from "@material-ui/icons/Delete";
+import clsx from "clsx";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import EmailIcon from "@material-ui/icons/Email";
+import CheckIcon from "@material-ui/icons/Check";
+
+const headCells = [
+    {
+        id: "email_invite",
+        numeric: false,
+        disablePadding: false,
+        label: "Email"
+    },
+    {
+        id: "date_invite",
+        numeric: true,
+        disablePadding: false,
+        label: "Date Invited"
+    },
+    {
+        id: "count_time_invite",
+        numeric: true,
+        disablePadding: false,
+        label: "Total Sent"
+    },
+    {
+        id: "sent",
+        numeric: true,
+        disablePadding: false,
+        label: ""
+    }
+];
 
 class UserCompanyPending extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            search: "",
+            orderBy: "",
+            order: "asc",
             tableLoading: false,
-            users: [],
-            loading: [],
+            selected: [],
 
             itemPerPage: 25,
             total: 0,
-            totalPage: 0,
-            offset: 0
+            offset: 0,
+            search: "",
+
+            users: [],
+            showDelete: false,
+            deleteLoading: false
         };
         this.handleSearch = this.handleSearch.bind(this);
         this.renderHeader = this.renderHeader.bind(this);
         this.renderBody = this.renderBody.bind(this);
+        this.createSortHandler = this.createSortHandler.bind(this);
+        this.isSelected = this.isSelected.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+        this.handleChangePage = this.handleChangePage.bind(this);
+        this.handleChangeRowsPerPage = this.handleChangeRowsPerPage.bind(this);
         this.fetchUsers = this.fetchUsers.bind(this);
         this.sendEmail = this.sendEmail.bind(this);
+        this.handleSearch = this.handleSearch.bind(this);
+    }
+    handleChangePage(event, newPage) {
+        this.setState({
+            offset: newPage
+        });
+    }
+    handleChangeRowsPerPage(event) {
+        this.setState({
+            itemPerPage: parseInt(event.target.value),
+            offset: 0
+        });
+    }
+    handleSearch(event) {
+        event.preventDefault();
+        this.fetchUsers();
+    }
+    renderHeader() {
+        const { orderBy, order, selected, users } = this.state;
+
+        return (
+            <TableHead>
+                <TableRow>
+                    {headCells.map(headCell => (
+                        <TableCell
+                            key={headCell.id}
+                            align={headCell.numeric ? "right" : "left"}
+                            padding={
+                                headCell.disablePadding ? "none" : "default"
+                            }
+                            sortDirection={
+                                orderBy === headCell.id ? order : false
+                            }
+                        >
+                            <TableSortLabel
+                                active={orderBy === headCell.id}
+                                direction={
+                                    orderBy === headCell.id ? order : "asc"
+                                }
+                                onClick={() =>
+                                    this.createSortHandler(headCell.id)
+                                }
+                            >
+                                {headCell.label}
+                                {orderBy === headCell.id ? (
+                                    <span
+                                        style={{
+                                            order: 0,
+                                            clip: "rect(0 0 0 0)",
+                                            height: 1,
+                                            margin: -1,
+                                            overflow: "hidden",
+                                            padding: 0,
+                                            position: "absolute",
+                                            top: 20,
+                                            width: 1
+                                        }}
+                                    >
+                                        {order === "desc"
+                                            ? "sorted descending"
+                                            : "sorted ascending"}
+                                    </span>
+                                ) : null}
+                            </TableSortLabel>
+                        </TableCell>
+                    ))}
+                </TableRow>
+            </TableHead>
+        );
+    }
+
+    renderBody() {
+        const {
+            users,
+            order,
+            orderBy,
+            offset,
+            itemPerPage,
+            tableLoading,
+            loading
+        } = this.state;
+        return (
+            <TableBody>
+                {tableLoading ? (
+                    <TableRow>
+                        <TableCell align="center" colSpan={6}>
+                            <CircularProgress />
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    <>
+                        {stableSort(users, getComparator(order, orderBy))
+                            .slice(
+                                offset * itemPerPage,
+                                offset * itemPerPage + itemPerPage
+                            )
+                            .map((row, index) => {
+                                const isItemSelected = this.isSelected(
+                                    row.id_invite
+                                );
+                                const labelId = `enhanced-table-checkbox-${index}`;
+
+                                return (
+                                    <TableRow
+                                        hover
+                                        role="checkbox"
+                                        aria-checked={isItemSelected}
+                                        tabIndex={-1}
+                                        key={row.id_invite}
+                                        selected={isItemSelected}
+                                    >
+                                        <TableCell component="th">
+                                            {row.email_invite}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {row.date_invite}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {row.count_time_invite}
+                                        </TableCell>
+
+                                        <TableCell align="right">
+                                            {row.sent ? (
+                                                <Button
+                                                    color="default"
+                                                    disabled
+                                                    variant="contained"
+                                                    startIcon={<CheckIcon />}
+                                                >
+                                                    Sent
+                                                </Button>
+                                            ) : (
+                                                <>
+                                                    {loading[index] ? (
+                                                        <Button
+                                                            disabled
+                                                            variant="contained"
+                                                            color="default"
+                                                            startIcon={
+                                                                <CircularProgress
+                                                                    size={30}
+                                                                />
+                                                            }
+                                                        ></Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={() =>
+                                                                this.sendEmail(
+                                                                    row,
+                                                                    index
+                                                                )
+                                                            }
+                                                            color="primary"
+                                                            variant="contained"
+                                                            startIcon={
+                                                                <EmailIcon />
+                                                            }
+                                                        >
+                                                            Re-send
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+
+                        {users.length == 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center">
+                                    No Data
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </>
+                )}
+            </TableBody>
+        );
     }
 
     componentDidMount() {
@@ -44,19 +292,20 @@ class UserCompanyPending extends Component {
                         method: "search_user_invited",
                         params: {
                             session_token: this.props.auth.token,
-                            size_page: this.state.itemPerPage,
-                            current_page:
-                                this.state.offset / this.state.itemPerPage,
+                            size_page: 1000000,
+                            current_page: 1,
                             company_id: this.props.auth.user.id,
                             key: this.state.search
                         }
                     });
-                    let copy = rs1.data.result_data.map(e => {
-                        const o = Object.assign({}, e);
-                        o.sent = false;
-                        loadingTemp.push(false);
-                        return o;
-                    });
+                    let copy = rs1.data.result_data
+                        .filter(e => e.status_invite == 0)
+                        .map(e => {
+                            const o = Object.assign({}, e);
+                            o.sent = false;
+                            loadingTemp.push(false);
+                            return o;
+                        });
                     this.setState({
                         users: copy,
                         total: rs1.data.count,
@@ -74,104 +323,7 @@ class UserCompanyPending extends Component {
         );
     }
 
-    renderHeader() {
-        return (
-            <thead>
-                <tr>
-                    <th className="whitespace-no-wrap px-6 py-3 w-24 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider"></th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        Email
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        Name
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        Date Invited
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        Total Sent
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider"></th>
-                </tr>
-            </thead>
-        );
-    }
-    renderBody() {
-        const { users, loading } = this.state;
-
-        return users.filter(e => e.status_invite == 0).length > 0 ? (
-            users
-                .filter(e => e.status_invite == 0)
-                .map((user, index) => (
-                    <tr key={index} className="hover:bg-gray-100">
-                        <td className="text-center">{index + 1}</td>
-                        <td className="px-6 py-4 whitespace-no-wrap ">
-                            <a
-                                className="flex text-blue-600 text-sm font-semibold hover:underline"
-                                href={
-                                    window.baseURL +
-                                    "/company/users/detail/" +
-                                    0
-                                }
-                                target="_blank"
-                            >
-                                {user.email_invite}
-                                <img
-                                    src={
-                                        window.baseURL +
-                                        "/public/images/export.svg"
-                                    }
-                                    className="w-4 ml-3"
-                                />
-                            </a>
-                        </td>
-                        <td className="px-6 py-4 whitespace-no-wrap text-sm ">
-                            {user.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-no-wrap text-sm ">
-                            {moment(user.date_invite).format("DD-MM-YYYY")}
-                        </td>
-                        <td className="px-6 py-4 whitespace-no-wrap text-sm ">
-                            {user.count_time_invite}
-                        </td>
-                        <td className="px-6 py-4 whitespace-no-wrap text-sm ">
-                            {user.sent ? (
-                                <Button backgroundColor="bg-gray-900" disabled>
-                                    Sent
-                                </Button>
-                            ) : (
-                                <Button
-                                    onClick={() => this.sendEmail(user, index)}
-                                    loading={loading[index]}
-                                >
-                                    Re-send
-                                </Button>
-                            )}
-                        </td>
-                    </tr>
-                ))
-        ) : (
-            <tr>
-                <td
-                    colSpan="6"
-                    className="text-center px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500"
-                >
-                    No data
-                </td>
-            </tr>
-        );
-    }
-    handleSearch() {
-        this.setState(
-            {
-                offset: 0
-            },
-            () => {
-                this.fetchUsers();
-            }
-        );
-    }
-    sendEmail(user, index) {
+    sendEmail(row, index) {
         const copy = [...this.state.loading];
         copy[index] = true;
 
@@ -185,7 +337,7 @@ class UserCompanyPending extends Component {
                         method: "invite_user",
                         params: {
                             session_token: this.props.auth.token,
-                            email: user.email_invite,
+                            email: row.email_invite,
                             company_id: this.props.auth.user.id
                         }
                     });
@@ -211,94 +363,219 @@ class UserCompanyPending extends Component {
             }
         );
     }
+
+    createSortHandler(property) {
+        const isAsc =
+            this.state.orderBy === property && this.state.order === "asc";
+        this.setState({
+            order: isAsc ? "desc" : "asc",
+            orderBy: property
+        });
+    }
+    isSelected(name) {
+        return this.state.selected.indexOf(name) !== -1;
+    }
+    handleClick(event, name) {
+        const { selected } = this.state;
+        const selectedIndex = selected.indexOf(name);
+        let newSelected = [];
+
+        if (selectedIndex === -1) {
+            newSelected = newSelected.concat(selected, name);
+        } else if (selectedIndex === 0) {
+            newSelected = newSelected.concat(selected.slice(1));
+        } else if (selectedIndex === selected.length - 1) {
+            newSelected = newSelected.concat(selected.slice(0, -1));
+        } else if (selectedIndex > 0) {
+            newSelected = newSelected.concat(
+                selected.slice(0, selectedIndex),
+                selected.slice(selectedIndex + 1)
+            );
+        }
+
+        this.setState({
+            selected: newSelected
+        });
+    }
     render() {
         const {
-            search,
-            tableLoading,
             users,
-            itemPerPage,
+            selected,
             total,
-            totalPage,
-            offset
+            offset,
+            itemPerPage,
+            showDelete,
+            deleteLoading,
+            filterOpen
         } = this.state;
         return (
-            <CompanyLayout>
-                <div className="w-full ml-64 mr-3 overflow-auto">
-                    <div className="flex justify-between items-center mx-auto py-6">
-                        <h1 className="text-base font-bold leading-tight text-gray-900">
-                            Pending Users
-                        </h1>
-                    </div>
-                    <div className="flex justify-between items-center col-gap-10">
-                        <SearchBar
-                            value={search}
-                            onChange={value => this.setState({ search: value })}
-                            handleSearch={this.handleSearch}
-                        />
-                    </div>
-                    <div className="flex flex-col my-3">
-                        <div className="py-2 align-middle inline-block min-w-full">
-                            <div className="shadow  border-b border-gray-200 sm:rounded-lg">
-                                <table className="min-w-full divide-y divide-gray-200 border">
-                                    {this.renderHeader()}
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {tableLoading ? (
-                                            <tr>
-                                                <td colSpan="6">
-                                                    <Player
-                                                        autoplay
-                                                        loop
-                                                        src={
-                                                            window.baseURL +
-                                                            "/public/images/loading.json"
-                                                        }
-                                                        style={{
-                                                            height: "150px",
-                                                            width: "150px"
-                                                        }}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            this.renderBody()
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <Pagination
-                            itemsPerPageComponent={
-                                <ChangeItemPerPage
-                                    itemPerPage={itemPerPage}
-                                    onClick={(item, state) =>
-                                        this.setState(
-                                            {
-                                                itemPerPage: item
-                                            },
-                                            this.fetchUsers
-                                        )
-                                    }
-                                />
+            <>
+                <form onSubmit={this.handleSearch}>
+                    <FormControl fullWidth variant="filled">
+                        <InputLabel htmlFor="standard-adornment-Search">
+                            Search
+                        </InputLabel>
+                        <FilledInput
+                            id="standard-adornment-Search"
+                            onChange={event =>
+                                this.setState({
+                                    search: event.target.value
+                                })
                             }
-                            data={users}
-                            totalPage={totalPage}
-                            total={total}
-                            offset={offset}
-                            itemsPerPage={itemPerPage}
-                            onChange={offset =>
-                                this.setState(
-                                    {
-                                        offset: offset
-                                    },
-                                    this.fetchUsers
-                                )
+                            startAdornment={
+                                <InputAdornment position="start">
+                                    <SearchIcon />
+                                </InputAdornment>
                             }
+                            /*      endAdornment={
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={() =>
+                                            setFilterOpen(!filterOpen)
+                                        }
+                                    >
+                                        <FilterListIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            } */
                         />
-                    </div>
-                </div>
-            </CompanyLayout>
+                    </FormControl>
+                </form>
+                <Paper>
+                    <RenderToolBar users={users} selected={selected} />
+                    <TableContainer>
+                        <Table>
+                            {this.renderHeader()}
+                            {this.renderBody()}
+                        </Table>
+                    </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[25, 50, 100, 250]}
+                        component="div"
+                        count={Math.ceil(total / itemPerPage)}
+                        rowsPerPage={itemPerPage}
+                        page={offset}
+                        onChangePage={this.handleChangePage}
+                        onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                    />
+                </Paper>
+            </>
         );
     }
+}
+const useToolbarStyles = makeStyles(theme => ({
+    root: {
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(1),
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+    highlight:
+        theme.palette.type === "light"
+            ? {
+                  color: theme.palette.secondary.main,
+                  backgroundColor: lighten(theme.palette.secondary.light, 0.85)
+              }
+            : {
+                  color: theme.palette.text.primary,
+                  backgroundColor: theme.palette.secondary.dark
+              },
+    title: {
+        flex: "1 1 100%"
+    }
+}));
+const RenderToolBar = props => {
+    const { selected, users } = props;
+    const classes = useToolbarStyles();
+    const numSelected = selected.length;
+
+    const [
+        exportSelectedMembersAnchor,
+        setExportSelectedMembersAnchor
+    ] = React.useState(null);
+
+    const filteredUsers = () => {
+        let temp = [];
+        selected.forEach(u_id => {
+            temp.push(users.find(e => e.id_invite == u_id.id_invite));
+        });
+
+        return temp;
+    };
+    const checkToArray = users => {
+        const user_id_array = [];
+        users.forEach(e => {
+            user_id_array.push({
+                id_invite: e.id_invite,
+                name: e.name
+            });
+        });
+        return user_id_array;
+    };
+    return (
+        <Toolbar
+            className={clsx(classes.root, {
+                [classes.highlight]: numSelected > 0
+            })}
+        >
+            <Typography variant="h6" id="tableTitle" component="div">
+                Pending Members
+            </Typography>
+            {/*  {numSelected > 0 ? (
+                <Typography color="inherit" variant="subtitle1" component="div">
+                    {numSelected} selected
+                </Typography>
+            ) : (
+                <Typography variant="h6" id="tableTitle" component="div">
+                    Pending Members
+                </Typography>
+            )}
+
+            {numSelected > 0 ? (
+                <div className="flex items-center justify-center">
+                    <div></div>
+                </div>
+            ) : (
+                <div></div>
+            )} */}
+        </Toolbar>
+    );
+};
+
+/* const StyledTableCell = withStyles(theme => ({
+    head: {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.common.white
+    },
+    body: {
+        fontSize: 14
+    }
+}))(TableCell); */
+
+function stableSort(array, comparator) {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+    });
+    return stabilizedThis.map(el => el[0]);
+}
+function getComparator(order, orderBy) {
+    return order === "desc"
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+}
+function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] < a[orderBy]) {
+        return -1;
+    }
+    if (b[orderBy] > a[orderBy]) {
+        return 1;
+    }
+    return 0;
 }
 
 export default ContextWrapper(UserCompanyPending);

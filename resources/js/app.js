@@ -33,7 +33,9 @@ import translationEN from "../lang/en/translation.json";
 import translationJA from "../lang/ja/translation.json";
 import translationVI from "../lang/vi/translation.json";
 import SupperAdminTranslation from "./pages/SupperAdminTranslation";
-
+import CompanyLayout from "./pageComponents/CompanyLayout";
+import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
 i18n.use(initReactI18next) // passes i18n down to react-i18next
     .init({
         resources: {
@@ -55,21 +57,6 @@ i18n.use(initReactI18next) // passes i18n down to react-i18next
         }
     });
 
-const notifySuccess = (message = "Success") => {
-    toast(message, {
-        autoClose: "5000",
-        type: toast.TYPE.SUCCESS
-    });
-};
-const notifyError = (
-    message = "A unknown error has error, please try again later"
-) => {
-    toast(message, {
-        autoClose: "5000",
-        type: toast.TYPE.ERROR
-    });
-};
-
 class App extends Component {
     constructor(props) {
         super(props);
@@ -78,10 +65,16 @@ class App extends Component {
             token: null,
             user: {},
             lang: 1,
-            loader: false
+            loader: false,
+            showNotify: false,
+            severity: "success",
+            message: ""
         };
         this.setToken = this.setToken.bind(this);
         this.setUser = this.setUser.bind(this);
+        this.setShowNotify = this.setShowNotify.bind(this);
+        this.notifySuccess = this.notifySuccess.bind(this);
+        this.notifyError = this.notifyError.bind(this);
     }
 
     componentDidMount() {
@@ -100,13 +93,41 @@ class App extends Component {
     setUser(user) {
         this.setState({ user: user });
     }
+    setShowNotify(status) {
+        this.setState({
+            showNotify: status
+        });
+    }
+    notifySuccess(message = "Success") {
+        this.setState({
+            severity: "success",
+            message: message,
+            showNotify: true
+        });
+    }
+    notifyError(message = "A unknown error has error, please try again later") {
+        this.setState({
+            severity: "error",
+            message: message,
+            showNotify: true
+        });
+    }
     render() {
-        const { initialize, token, user, lang, loader } = this.state;
+        const {
+            initialize,
+            token,
+            user,
+            lang,
+            loader,
+            showNotify,
+            severity,
+            message
+        } = this.state;
         return (
             <NotifyContext.Provider
                 value={{
-                    success: notifySuccess,
-                    error: notifyError
+                    success: this.notifySuccess,
+                    error: this.notifyError
                 }}
             >
                 <LanguageContext.Provider
@@ -214,7 +235,7 @@ class App extends Component {
                                                         </Route>
                                                         <Redirect to="/admin/company" />
                                                     </Switch>
-                                                ) : user.type == 1 ? (
+                                                ) : user.type == 2 ? (
                                                     <Switch>
                                                         <Route path="/" exact>
                                                             <Redirect to="/speedup" />
@@ -228,19 +249,19 @@ class App extends Component {
                                                         </Route>
                                                         <Redirect to="/" />
                                                     </Switch>
-                                                ) : user.type == 2 ? (
+                                                ) : user.type == 1 ? (
                                                     <Switch>
                                                         <Route
                                                             path="/company/users/list"
                                                             exact
                                                         >
-                                                            <UserCompanyList />
+                                                            <CompanyLayout />
                                                         </Route>
                                                         <Route
                                                             path="/company/users/pending-invite"
                                                             exact
                                                         >
-                                                            <UserCompanyPending />
+                                                            <CompanyLayout />
                                                         </Route>
                                                         <Route
                                                             path="/company/users/add"
@@ -291,7 +312,7 @@ class App extends Component {
                         {loader && <GlobalLoading />}
                     </LoadingContext.Provider>
                 </LanguageContext.Provider>
-                <ToastContainer
+                {/*  <ToastContainer
                     position="bottom-center"
                     autoClose={5000}
                     hideProgressBar
@@ -301,7 +322,25 @@ class App extends Component {
                     pauseOnFocusLoss
                     draggable
                     pauseOnHover
-                />
+                /> */}
+                <Snackbar
+                    open={showNotify}
+                    autoHideDuration={6000}
+                    onClose={() => {
+                        this.setShowNotify(false);
+                    }}
+                >
+                    <MuiAlert
+                        elevation={6}
+                        variant="filled"
+                        onClose={() => {
+                            this.setShowNotify(false);
+                        }}
+                        severity={severity}
+                    >
+                        {message}
+                    </MuiAlert>
+                </Snackbar>
             </NotifyContext.Provider>
         );
     }

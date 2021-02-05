@@ -1,73 +1,106 @@
 import React, { Component } from "react";
-import Button from "../components/Button";
-import CompanyLayout from "../pageComponents/CompanyLayout";
-import SearchBar from "../pageComponents/SearchBar";
-import Dropdown from "../components/Dropdown";
-import CheckBox from "../components/CheckBox";
-import { Player } from "@lottiefiles/react-lottie-player";
+import {
+    Button,
+    FilledInput,
+    FormControl,
+    InputAdornment,
+    InputLabel,
+    Paper,
+    Typography,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    Checkbox,
+    TableSortLabel,
+    TableBody,
+    TablePagination,
+    Toolbar,
+    makeStyles,
+    lighten,
+    Menu,
+    MenuItem,
+    withStyles,
+    CircularProgress
+} from "@material-ui/core";
+import SearchIcon from "@material-ui/icons/Search";
+import FilterListIcon from "@material-ui/icons/FilterList";
+import IconButton from "@material-ui/core/IconButton";
 import ContextWrapper from "../context/ContextWrapper";
-import MoreVert from "../components/MoreVert";
 import moment from "moment";
-import Pagination from "../components/Pagination";
-import ChangeItemPerPage from "../components/ChangeItemPerPage";
-import StudentAdd from "../pageComponents/StudentAdd";
-import DeletePopup from "../components/DeletePopup";
+import Tooltip from "@material-ui/core/Tooltip";
+import DeleteIcon from "@material-ui/icons/Delete";
+import clsx from "clsx";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
-const DELETE_TYPE = {
-    MULTIPLE: "MULTIPLE",
-    SIGNLE: "SIGNLE"
-};
+const headCells = [
+    { id: "name_invited", numeric: false, disablePadding: true, label: "Name" },
+    {
+        id: "email_invited",
+        numeric: false,
+        disablePadding: true,
+        label: "Email"
+    },
+    {
+        id: "max_submit",
+        numeric: true,
+        disablePadding: false,
+        label: "Max Time"
+    },
+    {
+        id: "results_count",
+        numeric: true,
+        disablePadding: false,
+        label: "Total Submit"
+    },
+    {
+        id: "updated_at",
+        numeric: true,
+        disablePadding: false,
+        label: "Latest Submit"
+    }
+];
+
 class UserCompanyList extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            forceRender: 1,
-            users: [],
-            selectedUsers: [],
-            currentUser: {},
+            value: 0,
+            orderBy: "",
+            order: "asc",
             tableLoading: false,
-            showModalDelete: false,
-            showFilter: false,
-            deleteType: DELETE_TYPE.SIGNLE,
+            selected: [],
+
             itemPerPage: 25,
-
             total: 0,
-            totalPage: 0,
             offset: 0,
-
-            sort: {
-                email: "",
-                name: "",
-                totalSummit: "",
-                date: "desc",
-                max_time: ""
-            },
             search: "",
-            checkAll: false
+
+            users: [],
+            showDelete: false,
+            deleteLoading: false
         };
-
-        this.fetchUsers = this.fetchUsers.bind(this);
-
-        this.handleSearch = this.handleSearch.bind(this);
-        this.handleDelete = this.handleDelete.bind(this);
-        this.handleChecked = this.handleChecked.bind(this);
-        this.checkToArray = this.checkToArray.bind(this);
-        this.handleCheckAll = this.handleCheckAll.bind(this);
-        this.allExist = this.allExist.bind(this);
-
+        this.handleChange = this.handleChange.bind(this);
         this.renderHeader = this.renderHeader.bind(this);
         this.renderBody = this.renderBody.bind(this);
-        this.downloadExcel = this.downloadExcel.bind(this);
-        this.downloadRaw = this.downloadRaw.bind(this);
+        this.createSortHandler = this.createSortHandler.bind(this);
+        this.isSelected = this.isSelected.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+        this.handleChangePage = this.handleChangePage.bind(this);
+        this.handleChangeRowsPerPage = this.handleChangeRowsPerPage.bind(this);
+        this.handleSelectAllClick = this.handleSelectAllClick.bind(this);
+        this.fetchUsers = this.fetchUsers.bind(this);
+        this.handleSearch = this.handleSearch.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
-
     componentDidMount() {
         this.fetchUsers();
-    }
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.sort !== this.state.sort) {
-            this.fetchUsers();
-        }
     }
     fetchUsers() {
         this.setState(
@@ -77,14 +110,13 @@ class UserCompanyList extends Component {
             async () => {
                 try {
                     const rs1 = await window.axios.post(window.apiURL, {
-                        method: "search_user",
+                        method: "search_employer",
                         params: {
                             session_token: this.props.auth.token,
-                            size_page: this.state.itemPerPage,
-                            current_page:
-                                this.state.offset / this.state.itemPerPage,
+                            size_page: 1000000,
+                            current_page: 1,
                             company_id: this.props.auth.user.id,
-                            name: this.state.search
+                            key: this.state.search
                         }
                     });
 
@@ -100,10 +132,6 @@ class UserCompanyList extends Component {
                         totalPage: Math.ceil(
                             rs1.data.count / this.state.itemPerPage
                         ),
-                        checkAll: this.allExist(
-                            rs1.data.result_data,
-                            this.state.selectedUsers
-                        ),
                         tableLoading: false
                     });
                 } catch (error) {
@@ -113,133 +141,36 @@ class UserCompanyList extends Component {
             }
         );
     }
-
-    allExist(incoming, selected) {
-        let total = 0;
-        incoming.forEach(e => {
-            if (selected.some(selec => selec.user_id == e.user_id)) {
-                total = total + 1;
-            }
-        });
-        if (total == incoming.length && total !== 0) {
-            return true;
-        }
-        return false;
-    }
-
-    handleSearch(event) {
-        this.setState(
-            {
-                offset: 0
-            },
-            () => {
-                this.fetchUsers();
-            }
-        );
-    }
-
-    handleChecked(user, value) {
-        const { selectedUsers } = this.state;
-        let copyOfSelectedUser = [...selectedUsers];
-        const exist = selectedUsers.some(e => e.user_id == user.user_id);
-        if (!exist) {
-            copyOfSelectedUser.push(user);
-        } else {
-            copyOfSelectedUser = copyOfSelectedUser.filter(
-                e => e.user_id !== user.user_id
-            );
-        }
-
+    handleChange(event, newValue) {
         this.setState({
-            selectedUsers: copyOfSelectedUser
+            value: newValue
         });
     }
-
-    checkToArray() {
-        const temp = this.state.selectedUsers;
-        const user_id_array = [];
-        temp.forEach(e => {
-            user_id_array.push({
-                user_id: e.user_id,
-                name: e.name
-            });
+    createSortHandler(property) {
+        const isAsc =
+            this.state.orderBy === property && this.state.order === "asc";
+        this.setState({
+            order: isAsc ? "desc" : "asc",
+            orderBy: property
         });
-        return user_id_array;
     }
-
-    handleCheckAll() {
-        const { users, selectedUsers } = this.state;
-        let copyOfSelectedUser = [...selectedUsers];
-
-        let exist =
-            selectedUsers.some(r => users.includes(r)) ||
-            this.allExist(users, selectedUsers);
-        if (exist) {
-            users.forEach(element => {
-                copyOfSelectedUser = copyOfSelectedUser.filter(
-                    e => e.user_id !== element.user_id
-                );
-            });
-
-            this.setState({
-                selectedUsers: copyOfSelectedUser,
-                checkAll: false
-            });
-        } else {
-            users.forEach(element => {
-                copyOfSelectedUser.push(element);
-            });
-
-            this.setState({
-                selectedUsers: copyOfSelectedUser,
-                checkAll: true
-            });
-        }
+    handleChangePage(event, newPage) {
+        this.setState({
+            offset: newPage
+        });
     }
-
-    async handleDelete() {
-        const { currentUser, deleteType, forceRender } = this.state;
-        try {
-            const rs = await window.axios.post(window.apiURL, {
-                method: "remove_user",
-                params: {
-                    session_token: this.props.auth.token,
-                    user_id: currentUser.user_id,
-                    company_id: this.props.auth.user.id
-                }
-            });
-            /*   window.baseURL + "/company/users?id=",
-                {
-                    params: {
-                        id:
-                            deleteType === DELETE_TYPE.SIGNLE
-                                ? currentUser.id
-                                : JSON.stringify(this.checkToArray()),
-                        type: deleteType
-                    }
-                } */
-            if (rs.data.result_code == 1) {
-                this.props.notify.success(rs.data.result_message_text);
-
-                this.setState({
-                    showModalDelete: false,
-                    selectedUsers: []
-                });
-                this.fetchUsers();
-            } else {
-                this.props.notify.error(rs.data.result_message_text);
-            }
-        } catch (error) {
-            this.props.notify.error();
-        } finally {
-        }
+    handleChangeRowsPerPage(event) {
+        console.log(event.target.value);
+        this.setState({
+            itemPerPage: parseInt(event.target.value),
+            offset: 0
+        });
     }
-
-    downloadExcel(num) {
+    exportMembers(num, data) {
         window.axios
             .post(window.baseURL + "/api/export/summaryExcel", {
                 num: num,
-                data: this.checkToArray()
+                data: data
             })
             .then(rs => {
                 if (num == 1) {
@@ -249,531 +180,595 @@ class UserCompanyList extends Component {
                 }
             });
     }
-    downloadRaw() {
-        window.axios
-            .post(window.baseURL + "/api/export/exportraw", {
-                data: this.checkToArray(),
-                auth: this.props.auth.user
-            })
-            .then(rs => {
-                window.open(window.baseURL + "/Summary_Raw_Result.zip");
-            });
+    handleSearch(event) {
+        event.preventDefault();
+        this.fetchUsers();
+    }
+    handleDelete() {
+        this.setState(
+            {
+                deleteLoading: true
+            },
+            async () => {
+                try {
+                    const rs = await window.axios.post(window.apiURL, {
+                        method: "remove_user",
+                        params: {
+                            session_token: this.props.auth.token,
+                            user_id: this.state.selected.join(),
+                            company_id: this.props.auth.user.id
+                        }
+                    });
+
+                    this.props.notify.success("Remove successfully!");
+                    this.setState({
+                        showDelete: false
+                    });
+                    this.fetchUsers();
+                } catch (error) {
+                    this.props.notify.error();
+                } finally {
+                    this.setState({
+                        deleteLoading: false
+                    });
+                }
+            }
+        );
     }
     render() {
         const {
-            forceRender,
-            showModalDelete,
-            tableLoading,
-            showFilter,
+            value,
             users,
-            selectedUsers,
-            itemPerPage,
+            selected,
             total,
-            totalPage,
             offset,
-            sort,
-            search,
-            checkAll
+            itemPerPage,
+            showDelete,
+            deleteLoading
         } = this.state;
         return (
-            <CompanyLayout>
-                <div className="w-full ml-64 mr-3 overflow-auto">
-                    <div className="flex justify-between items-center mx-auto py-6">
-                        <h1 className="text-base font-bold leading-tight text-gray-900">
-                            Users Management
-                        </h1>
-                    </div>
-                    <div className="flex justify-between items-center col-gap-10">
-                        <SearchBar
-                            value={search}
-                            onChange={value => this.setState({ search: value })}
-                            handleSearch={this.handleSearch}
-                        />
-                    </div>
-                    {/*<div className="flex justify-between mt-3">
-                        <div>
-                            <div
-                                className="bg-white px-3 text-xs py-1 cursor-pointer flex items-center rounded-full border"
-                                onClick={() =>
-                                    this.setState({
-                                        showFilter: !showFilter
-                                    })
-                                }
-                            >
-                                <img
-                                    src={
-                                        window.baseURL +
-                                        "/public/images/filter.svg"
-                                    }
-                                    className="w-3 mr-2"
-                                />
-                                Filter
-                            </div>
-                        </div>
-                    </div>
- */}
-                    <div className="flex flex-col my-3">
-                        <div
-                            className={
-                                (selectedUsers.length > 0
-                                    ? " opacity-100"
-                                    : " opacity-25") +
-                                " bg-purple-200 flex justify-between p-3 mb-3 items-center rounded font-semibold text-main"
+            <>
+                <form onSubmit={this.handleSearch}>
+                    <FormControl fullWidth variant="filled">
+                        <InputLabel htmlFor="standard-adornment-Search">
+                            Search
+                        </InputLabel>
+                        <FilledInput
+                            id="standard-adornment-Search"
+                            onChange={event =>
+                                this.setState({
+                                    search: event.target.value
+                                })
                             }
-                        >
-                            <div className="flex items-center">
-                                <div>{selectedUsers.length} users seleted</div>
-                                {selectedUsers.length > 0 && (
-                                    <div className="flex items-center ml-6">
-                                        <button
-                                            onClick={() => {
-                                                this.setState({
-                                                    selectedUsers: [],
-                                                    checkAll: false
-                                                });
-                                            }}
-                                            className="outline-none shadow-none bg-gray-600 rounded-xl flex items-center px-4"
-                                        >
-                                            <img
-                                                src={
-                                                    window.baseURL +
-                                                    "/public/images/cancel.svg"
-                                                }
-                                                className="w-3 mr-3"
-                                            />
-                                            <div className="text-white font-semibold">
-                                                Clear
-                                            </div>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center">
-                                <Dropdown
-                                    disabled={selectedUsers.length == 0}
-                                    text="Download"
-                                    bgColor=" bg-blue-600 "
-                                    textColor=" text-white "
-                                    icon={
-                                        <img
-                                            src={
-                                                window.baseURL +
-                                                "/public/images/download.svg"
-                                            }
-                                            width="15px"
-                                            className="mr-3"
-                                        />
-                                    }
-                                >
-                                    <button
-                                        onClick={() => this.downloadExcel(1)}
-                                        disabled={
-                                            !selectedUsers.some(
-                                                r => r.results_count >= 1
-                                            )
-                                        }
-                                        className={
-                                            (selectedUsers.some(
-                                                r => r.results_count >= 1
-                                            )
-                                                ? ""
-                                                : " cursor-not-allowed opacity-50") +
-                                            " hover:bg-gray-300 block  whitespace-no-wrap items-center justify-center px-4 py-1 border border-transparent text-sm leading-6 font-medium transition ease-in-out duration-150 w-full text-left"
-                                        }
-                                        title={
-                                            selectedUsers.some(
-                                                r => r.results_count >= 1
-                                            )
-                                                ? ""
-                                                : "None of selected users has data"
-                                        }
-                                    >
-                                        Download Summary Result No. 1
-                                    </button>
-                                    <button
-                                        onClick={() => this.downloadExcel(2)}
-                                        disabled={
-                                            !selectedUsers.some(
-                                                r => r.results_count >= 2
-                                            )
-                                        }
-                                        className={
-                                            (selectedUsers.some(
-                                                r => r.results_count == 2
-                                            )
-                                                ? ""
-                                                : " cursor-not-allowed opacity-50") +
-                                            " hover:bg-gray-300 block  whitespace-no-wrap items-center justify-center px-4 py-1 border border-transparent text-sm leading-6 font-medium transition ease-in-out duration-150 w-full text-left"
-                                        }
-                                        title={
-                                            selectedUsers.some(
-                                                r => r.results_count == 2
-                                            )
-                                                ? ""
-                                                : "None of selected users has results No.2"
-                                        }
-                                    >
-                                        Download Summary Result No. 2
-                                    </button>
-                                    <button
-                                        disabled={
-                                            !selectedUsers.some(
-                                                r => r.results_count >= 1
-                                            )
-                                        }
-                                        onClick={() => this.downloadRaw()}
-                                        className={
-                                            (selectedUsers.some(
-                                                r => r.results_count >= 1
-                                            )
-                                                ? ""
-                                                : " cursor-not-allowed opacity-50") +
-                                            " hover:bg-gray-300 block  whitespace-no-wrap items-center justify-center px-4 py-1 border border-transparent text-sm leading-6 font-medium transition ease-in-out duration-150 w-full text-left"
-                                        }
-                                        title={
-                                            selectedUsers.some(
-                                                r => r.results_count >= 1
-                                            )
-                                                ? ""
-                                                : "None of selected users has results No.2"
-                                        }
-                                    >
-                                        Download Raw Result
-                                    </button>
-                                </Dropdown>
-                                <div className="mx-3">
-                                    {/* <Button
-                                        disabled={selectedUsers.length == 0}
+                            startAdornment={
+                                <InputAdornment position="start">
+                                    <SearchIcon />
+                                </InputAdornment>
+                            }
+                            /* endAdornment={
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
                                         onClick={() =>
-                                            this.setState({
-                                                showModalDelete: true,
-                                                deleteType: DELETE_TYPE.MULTIPLE
-                                            })
+                                            setFilterOpen(!filterOpen)
                                         }
-                                        backgroundColor="bg-red-700"
-                                        textColor=""
                                     >
-                                        <img
-                                            src={
-                                                window.baseURL +
-                                                "/public/images/trash.svg"
-                                            }
-                                            width="15px"
-                                            className="mr-3"
-                                        />
-                                        Remove member
-                                    </Button> */}
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <div className="py-2 align-middle inline-block min-w-full">
-                                <div className="shadow  border-b border-gray-200 sm:rounded-lg">
-                                    <table className="min-w-full divide-y divide-gray-200 border">
-                                        {this.renderHeader()}
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {tableLoading ? (
-                                                <tr>
-                                                    <td colSpan="7">
-                                                        <Player
-                                                            autoplay
-                                                            loop
-                                                            src={
-                                                                window.baseURL +
-                                                                "/public/images/loading.json"
-                                                            }
-                                                            style={{
-                                                                height: "150px",
-                                                                width: "150px"
-                                                            }}
-                                                        />
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                this.renderBody()
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <Pagination
-                        itemsPerPageComponent={
-                            <ChangeItemPerPage
-                                itemPerPage={itemPerPage}
-                                onClick={(item, state) =>
-                                    this.setState(
-                                        {
-                                            itemPerPage: item
-                                        },
-                                        this.fetchUsers
-                                    )
-                                }
-                            />
-                        }
-                        data={users}
-                        totalPage={totalPage}
-                        total={total}
-                        offset={offset}
-                        itemsPerPage={itemPerPage}
-                        onChange={offset =>
-                            this.setState(
-                                {
-                                    offset: offset
-                                },
-                                this.fetchUsers
-                            )
-                        }
-                    />
-                    {showModalDelete && (
-                        <DeletePopup
-                            onCancle={() =>
-                                this.setState({ showModalDelete: false })
-                            }
-                            onDelete={this.handleDelete}
+                                        <FilterListIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            } */
                         />
+                    </FormControl>
+                </form>
+                <Paper elevation={3}>
+                    <RenderToolBar
+                        exportMembers={this.exportMembers}
+                        users={users}
+                        selected={selected}
+                        setShowDialog={status => {
+                            this.setState({
+                                showDelete: status
+                            });
+                        }}
+                    />
+                    <TableContainer component={Paper}>
+                        <Table>
+                            {this.renderHeader()}
+                            {this.renderBody()}
+                        </Table>
+                    </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[25, 50, 100, 250]}
+                        component="div"
+                        count={Math.ceil(total / itemPerPage)}
+                        rowsPerPage={itemPerPage}
+                        page={offset}
+                        onChangePage={this.handleChangePage}
+                        onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                    />
+                </Paper>
+                <Dialog
+                    open={showDelete}
+                    onClose={() =>
+                        this.setState({
+                            showDelete: false
+                        })
+                    }
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    {deleteLoading && (
+                        <div className="absolute right-0 left-0 top-0 bottom-0 flex items-center justify-center z-50">
+                            <div className="absolute right-0 left-0 top-0 bottom-0 bg-white opacity-50" />
+                            <CircularProgress />
+                        </div>
                     )}
-                </div>
-            </CompanyLayout>
+
+                    <DialogTitle id="alert-dialog-title">
+                        {"Remove member from your company?"}
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            This action cannot be undone!
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={() =>
+                                this.setState({
+                                    showDelete: false
+                                })
+                            }
+                            color="primary"
+                        >
+                            Disagree
+                        </Button>
+                        <Button
+                            onClick={() => this.handleDelete()}
+                            color="secondary"
+                            autoFocus
+                        >
+                            Agree
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </>
         );
+    }
+    handleSelectAllClick(event) {
+        const { users } = this.state;
+        if (event.target.checked) {
+            const newSelecteds = users.map(n => n.emp_id_invited);
+            this.setState({
+                selected: newSelecteds
+            });
+            return;
+        }
+        this.setState({
+            selected: []
+        });
+    }
+
+    isSelected(name) {
+        return this.state.selected.indexOf(name) !== -1;
+    }
+    handleClick(event, name) {
+        const { selected } = this.state;
+        const selectedIndex = selected.indexOf(name);
+        let newSelected = [];
+
+        if (selectedIndex === -1) {
+            newSelected = newSelected.concat(selected, name);
+        } else if (selectedIndex === 0) {
+            newSelected = newSelected.concat(selected.slice(1));
+        } else if (selectedIndex === selected.length - 1) {
+            newSelected = newSelected.concat(selected.slice(0, -1));
+        } else if (selectedIndex > 0) {
+            newSelected = newSelected.concat(
+                selected.slice(0, selectedIndex),
+                selected.slice(selectedIndex + 1)
+            );
+        }
+
+        this.setState({
+            selected: newSelected
+        });
     }
 
     renderHeader() {
-        const { checkAll, sort } = this.state;
-        return (
-            <thead>
-                <tr>
-                    <th className="whitespace-no-wrap w-12 bg-gray-800">
-                        <CheckBox
-                            id="check_all"
-                            checked={checkAll}
-                            onChange={this.handleCheckAll}
-                        />
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        <div
-                            onClick={() => {
-                                setState({
-                                    username:
-                                        sort.username === "desc"
-                                            ? "asc"
-                                            : "desc",
-                                    name: "",
-                                    totalSummit: "",
-                                    date: "",
-                                    max_time: ""
-                                });
-                            }}
-                            className="flex items-center cursor-pointer"
-                        >
-                            Email
-                            {sort.username !== "" &&
-                                (sort.username == "desc" ? (
-                                    <DescIcon />
-                                ) : (
-                                    <AscIcon />
-                                ))}
-                        </div>
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        <div
-                            onClick={() => {
-                                setState({
-                                    username: "",
-                                    name: sort.name === "desc" ? "asc" : "desc",
-                                    totalSummit: "",
-                                    date: "",
-                                    max_time: ""
-                                });
-                            }}
-                            className="flex items-center cursor-pointer"
-                        >
-                            Name
-                            {sort.name !== "" &&
-                                (sort.name == "desc" ? (
-                                    <DescIcon />
-                                ) : (
-                                    <AscIcon />
-                                ))}
-                        </div>
-                    </th>
+        const { orderBy, order, selected, users } = this.state;
 
-                    <th className="whitespace-no-wrap px-6 py-3 w-40 bg-gray-800  text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        <div
-                            onClick={() => {
-                                setState({
-                                    username: "",
-                                    totalSummit: "",
-                                    max_time:
-                                        sort.max_time === "desc"
-                                            ? "asc"
-                                            : "desc",
-                                    name: "",
-                                    date: ""
-                                });
+        return (
+            <TableHead>
+                <TableRow>
+                    <TableCell padding="checkbox">
+                        <Checkbox
+                            indeterminate={
+                                selected.length > 0 &&
+                                selected.length < users.length
+                            }
+                            checked={
+                                users.length > 0 &&
+                                selected.length === users.length
+                            }
+                            onChange={this.handleSelectAllClick}
+                            inputProps={{
+                                "aria-label": "select all desserts"
                             }}
-                            className="flex items-center cursor-pointer"
+                        />
+                    </TableCell>
+
+                    {headCells.map(headCell => (
+                        <TableCell
+                            key={headCell.id}
+                            align={headCell.numeric ? "right" : "left"}
+                            padding={
+                                headCell.disablePadding ? "none" : "default"
+                            }
+                            sortDirection={
+                                orderBy === headCell.id ? order : false
+                            }
                         >
-                            Maximum allowed submit
-                            {sort.max_time !== "" &&
-                                (sort.max_time == "desc" ? (
-                                    <DescIcon />
-                                ) : (
-                                    <AscIcon />
-                                ))}
-                        </div>
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 w-40 bg-gray-800  text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        <div
-                            onClick={() => {
-                                setState({
-                                    username: "",
-                                    totalSummit:
-                                        sort.totalSummit === "desc"
-                                            ? "asc"
-                                            : "desc",
-                                    name: "",
-                                    date: "",
-                                    max_time: ""
-                                });
-                            }}
-                            className="flex items-center cursor-pointer"
-                        >
-                            Total Submitted
-                            {sort.totalSummit !== "" &&
-                                (sort.totalSummit == "desc" ? (
-                                    <DescIcon />
-                                ) : (
-                                    <AscIcon />
-                                ))}
-                        </div>
-                    </th>
-                    <th className="whitespace-no-wrap px-6 py-3 w-40 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                        <div
-                            onClick={() => {
-                                setState({
-                                    username: "",
-                                    name: "",
-                                    totalSummit: "",
-                                    date: sort.date === "desc" ? "asc" : "desc",
-                                    max_time: ""
-                                });
-                            }}
-                            className="flex items-center cursor-pointer"
-                        >
-                            Lastest Submitted
-                            {sort.date !== "" &&
-                                (sort.date == "desc" ? (
-                                    <DescIcon />
-                                ) : (
-                                    <AscIcon />
-                                ))}
-                        </div>
-                    </th>
-                    <th className="px-6 py-3 bg-gray-800 w-16"></th>
-                </tr>
-            </thead>
+                            <TableSortLabel
+                                active={orderBy === headCell.id}
+                                direction={
+                                    orderBy === headCell.id ? order : "asc"
+                                }
+                                onClick={() =>
+                                    this.createSortHandler(headCell.id)
+                                }
+                            >
+                                {headCell.label}
+                                {orderBy === headCell.id ? (
+                                    <span
+                                        style={{
+                                            order: 0,
+                                            clip: "rect(0 0 0 0)",
+                                            height: 1,
+                                            margin: -1,
+                                            overflow: "hidden",
+                                            padding: 0,
+                                            position: "absolute",
+                                            top: 20,
+                                            width: 1
+                                        }}
+                                    >
+                                        {order === "desc"
+                                            ? "sorted descending"
+                                            : "sorted ascending"}
+                                    </span>
+                                ) : null}
+                            </TableSortLabel>
+                        </TableCell>
+                    ))}
+                </TableRow>
+            </TableHead>
         );
     }
-
     renderBody() {
-        const { users, selectedUsers } = this.state;
-        return users.length > 0 ? (
-            users.map(user => (
-                <tr key={user.user_id} className="hover:bg-gray-100">
-                    <td className="text-center">
-                        <CheckBox
-                            id={"check_" + user.user_id}
-                            checked={selectedUsers.some(
-                                e => e.user_id == user.user_id
-                            )}
-                            onChange={event =>
-                                this.handleChecked(user, event.target.checked)
-                            }
-                        />
-                    </td>
-                    <td className="px-6 py-4 whitespace-no-wrap ">
-                        <a
-                            className="flex text-blue-600 text-sm font-semibold hover:underline"
-                            href={
-                                window.baseURL +
-                                "/company/users/" +
-                                user.user_id
-                            }
-                            target="_blank"
-                        >
-                            {user.email}
-                            <img
-                                src={
-                                    window.baseURL + "/public/images/export.svg"
-                                }
-                                className="w-4 ml-3"
-                            />
-                        </a>
-                    </td>
-                    <td className="px-6 py-4 whitespace-no-wrap">
-                        <div className="text-sm leading-5 text-gray-900">
-                            {user.name}
-                        </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-no-wrap text-center">
-                        {user.max_time}
-                    </td>
-                    <td className="px-6 py-4 whitespace-no-wrap text-center">
-                        {user.results_count}
-                    </td>
-                    <td className="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500">
-                        {user.updated_at &&
-                            moment(user.updated_at).format("DD/MM/YYYY")}
-                    </td>
-                    <td className="px-2 py-4 whitespace-no-wrap text-right text-sm leading-5 font-medium flex items-center justify-center">
-                        <MoreVert>
-                            <button
-                                onClick={() => {
-                                    this.setState({
-                                        currentUser: user,
-                                        showModalDelete: true,
-                                        deleteType: DELETE_TYPE.SIGNLE
-                                    });
-                                }}
-                                className="text-left text-red-600 p-3 text-sm font-semibold   hover:text-red-900"
-                            >
-                                Remove member
-                            </button>
-                        </MoreVert>
-                    </td>
-                </tr>
-            ))
-        ) : (
-            <tr>
-                <td
-                    colSpan="7"
-                    className="text-center px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500"
-                >
-                    No data
-                </td>
-            </tr>
+        const {
+            users,
+            order,
+            orderBy,
+            offset,
+            itemPerPage,
+            tableLoading
+        } = this.state;
+        return (
+            <TableBody>
+                {tableLoading ? (
+                    <TableRow>
+                        <TableCell align="center" colSpan={6}>
+                            <CircularProgress />
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    <>
+                        {stableSort(users, getComparator(order, orderBy))
+                            .slice(
+                                offset * itemPerPage,
+                                offset * itemPerPage + itemPerPage
+                            )
+                            .map((row, index) => {
+                                const isItemSelected = this.isSelected(
+                                    row.emp_id_invited
+                                );
+                                const labelId = `enhanced-table-checkbox-${index}`;
+
+                                return (
+                                    <TableRow
+                                        hover
+                                        onClick={event =>
+                                            this.handleClick(
+                                                event,
+                                                row.emp_id_invited
+                                            )
+                                        }
+                                        role="checkbox"
+                                        aria-checked={isItemSelected}
+                                        tabIndex={-1}
+                                        key={row.id}
+                                        selected={isItemSelected}
+                                    >
+                                        <TableCell padding="checkbox">
+                                            <Checkbox
+                                                color="primary"
+                                                checked={isItemSelected}
+                                                inputProps={{
+                                                    "aria-labelledby": labelId
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell
+                                            component="th"
+                                            id={labelId}
+                                            scope="row"
+                                            padding="none"
+                                        >
+                                            {row.name_invited}
+                                        </TableCell>
+                                        <TableCell>
+                                            {row.email_invited}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {row.max_time}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {row.results_count}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            {row.updated_at &&
+                                                moment(row.updated_at).format(
+                                                    "DD/MM/YYYY"
+                                                )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+
+                        {users.length == 0 && (
+                            <TableRow>
+                                <TableCell colSpan={6} align="center">
+                                    No Data
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </>
+                )}
+            </TableBody>
         );
     }
 }
 
-export default ContextWrapper(UserCompanyList);
-const DescIcon = () => {
+const useToolbarStyles = makeStyles(theme => ({
+    root: {
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(1),
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+    highlight:
+        theme.palette.type === "light"
+            ? {
+                  color: theme.palette.secondary.main,
+                  backgroundColor: lighten(theme.palette.secondary.light, 0.85)
+              }
+            : {
+                  color: theme.palette.text.primary,
+                  backgroundColor: theme.palette.secondary.dark
+              },
+    title: {
+        flex: "1 1 100%"
+    }
+}));
+
+const RenderToolBar = props => {
+    const { selected, exportMembers, users, setShowDialog } = props;
+    const classes = useToolbarStyles();
+    const numSelected = selected.length;
+    const [exportAllMembersAnchor, setExportAllMembersAnchor] = React.useState(
+        null
+    );
+    const [
+        exportSelectedMembersAnchor,
+        setExportSelectedMembersAnchor
+    ] = React.useState(null);
+
+    const filteredUsers = () => {
+        let temp = [];
+        selected.forEach(u_id => {
+            temp.push(users.find(e => e.emp_id_invited == u_id));
+        });
+
+        return temp;
+    };
+    const checkToArray = users => {
+        const user_id_array = [];
+        users.forEach(e => {
+            user_id_array.push({
+                emp_id_invited: e.emp_id_invited,
+                name: e.name
+            });
+        });
+        return user_id_array;
+    };
     return (
-        <img
-            src={window.baseURL + "/public/images/arrow-down.svg"}
-            className="w-4 ml-3"
-        />
+        <Toolbar
+            className={clsx(classes.root, {
+                [classes.highlight]: numSelected > 0
+            })}
+        >
+            {numSelected > 0 ? (
+                <Typography color="inherit" variant="subtitle1" component="div">
+                    {numSelected} selected
+                </Typography>
+            ) : (
+                <Typography variant="h6" id="tableTitle" component="div">
+                    Active Members
+                </Typography>
+            )}
+
+            {numSelected > 0 ? (
+                <div className="flex items-center justify-center">
+                    <div>
+                        <div>
+                            <Tooltip title="Export selected members">
+                                <IconButton
+                                    variant="text"
+                                    color="primary"
+                                    aria-controls="exportSelectedMembers"
+                                    aria-haspopup="true"
+                                    onClick={event => {
+                                        setExportSelectedMembersAnchor(
+                                            event.currentTarget
+                                        );
+                                    }}
+                                >
+                                    <GetAppIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Menu
+                                id="exportSelectedMembers"
+                                anchorEl={exportSelectedMembersAnchor}
+                                keepMounted
+                                open={Boolean(exportSelectedMembersAnchor)}
+                                onClose={() => {
+                                    setExportSelectedMembersAnchor(null);
+                                }}
+                                anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "center"
+                                }}
+                                getContentAnchorEl={null}
+                            >
+                                <MenuItem
+                                    disabled={
+                                        !filteredUsers().some(
+                                            r => r.results_count >= 1
+                                        )
+                                    }
+                                    onClick={() => {
+                                        filteredUsers(
+                                            1,
+                                            checkToArray(filteredUsers())
+                                        );
+                                    }}
+                                >
+                                    Export No.1
+                                </MenuItem>
+                                <MenuItem
+                                    disabled={
+                                        !filteredUsers().some(
+                                            r => r.results_count >= 2
+                                        )
+                                    }
+                                    onClick={() => {
+                                        filteredUsers(
+                                            2,
+                                            checkToArray(filteredUsers())
+                                        );
+                                    }}
+                                >
+                                    Export No.2
+                                </MenuItem>
+                            </Menu>
+                        </div>
+                    </div>
+                    <Tooltip title="Remove member">
+                        <IconButton
+                            variant="text"
+                            color="secondary"
+                            onClick={() => setShowDialog(true)}
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    </Tooltip>
+                </div>
+            ) : (
+                <div>
+                    <Tooltip title="Export all members">
+                        <IconButton
+                            variant="text"
+                            color="primary"
+                            aria-controls="exportAllMembers"
+                            aria-haspopup="true"
+                            onClick={event => {
+                                setExportAllMembersAnchor(event.currentTarget);
+                            }}
+                        >
+                            <GetAppIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Menu
+                        id="exportAllMembers"
+                        anchorEl={exportAllMembersAnchor}
+                        keepMounted
+                        open={Boolean(exportAllMembersAnchor)}
+                        onClose={() => {
+                            setExportAllMembersAnchor(null);
+                        }}
+                        anchorOrigin={{
+                            vertical: "bottom",
+                            horizontal: "center"
+                        }}
+                        getContentAnchorEl={null}
+                    >
+                        <MenuItem
+                            disabled={!users.some(r => r.results_count >= 1)}
+                            onClick={() => {
+                                exportMembers(1, checkToArray(users));
+                            }}
+                        >
+                            Export No.1
+                        </MenuItem>
+                        <MenuItem
+                            disabled={!users.some(r => r.results_count >= 2)}
+                            onClick={() => {
+                                exportMembers(2, checkToArray(users));
+                            }}
+                        >
+                            Export No.2
+                        </MenuItem>
+                    </Menu>
+                </div>
+            )}
+        </Toolbar>
     );
 };
 
-const AscIcon = () => {
-    return (
-        <img
-            src={window.baseURL + "/public/images/arrow-down.svg"}
-            className="w-4 ml-3 transform rotate-180"
-        />
-    );
-};
+/* const StyledTableCell = withStyles(theme => ({
+    head: {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.common.white
+    },
+    body: {
+        fontSize: 14
+    }
+}))(TableCell); */
+
+function stableSort(array, comparator) {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+    });
+    return stabilizedThis.map(el => el[0]);
+}
+function getComparator(order, orderBy) {
+    return order === "desc"
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+}
+function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] < a[orderBy]) {
+        return -1;
+    }
+    if (b[orderBy] > a[orderBy]) {
+        return 1;
+    }
+    return 0;
+}
+
+export default ContextWrapper(UserCompanyList);

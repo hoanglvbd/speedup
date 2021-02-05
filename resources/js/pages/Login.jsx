@@ -3,10 +3,13 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import Input from "../components/Input";
 import AppError from "../components/AppError";
-import Button from "../components/Button";
 import ContextWrapper from "../context/ContextWrapper";
 import { withTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import TextField from "@material-ui/core/TextField";
+import Button from "@material-ui/core/Button";
+import { Typography } from "@material-ui/core";
+
 const variants = {
     open: { opacity: 1, scale: 1, display: "block" },
     closed: {
@@ -47,7 +50,7 @@ class Login extends Component {
                         const data = rs.data.result_data;
                         const user = {
                             id: data.id,
-                            type: data.type,
+                            type: data.type_member,
                             username: data.username,
                             name: data.name,
                             email: data.email,
@@ -60,13 +63,13 @@ class Login extends Component {
                         );
                         localStorage.setItem("user", JSON.stringify(user));
 
-                        if (data.type == 0) {
+                        if (data.type_member == 0) {
                             window.location.replace("/admin");
                         }
-                        if (data.type == 1) {
+                        if (data.type_member == 2) {
                             window.location.replace("/");
                         }
-                        if (data.type == 2) {
+                        if (data.type_member == 1) {
                             window.location.replace("company/users");
                         }
 
@@ -104,11 +107,12 @@ class Login extends Component {
                     <div className="max-w-md w-full">
                         <div>
                             <img
-                                className="mx-auto h-32 w-auto"
+                                className="mx-auto h-16 w-auto"
                                 src={window.baseURL + "/public/images/logo.png"}
                                 alt="Workflow"
                             />
                         </div>
+
                         {serverMessage !== "" && (
                             <p
                                 className="text-red-800 mt-8 text-center"
@@ -134,14 +138,14 @@ class Login extends Component {
                                 errors
                             }) => (
                                 <form className="mt-8" onSubmit={handleSubmit}>
-                                    <div className="rounded-md shadow-sm">
+                                    <div>
                                         <div className="mb-3">
-                                            <Input
+                                            <TextField
+                                                autoComplete="email"
+                                                label="Email"
                                                 name="username"
-                                                aria-label="Username"
-                                                autoComplete="username"
-                                                autoFocus
-                                                placeholder="Email"
+                                                fullWidth
+                                                variant="outlined"
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                                 value={values.username}
@@ -150,6 +154,7 @@ class Login extends Component {
                                                     touched.username
                                                 }
                                             />
+
                                             {errors.username &&
                                                 touched.username && (
                                                     <AppError
@@ -159,13 +164,14 @@ class Login extends Component {
                                                     />
                                                 )}
                                         </div>
-                                        <div className="-mt-px">
-                                            <Input
-                                                aria-label="Password"
+                                        <div>
+                                            <TextField
+                                                autoComplete="password"
+                                                label="Password"
                                                 name="password"
+                                                fullWidth
                                                 type="password"
-                                                placeholder="Password"
-                                                autoComplete="current-password"
+                                                variant="outlined"
                                                 onChange={handleChange}
                                                 onBlur={handleBlur}
                                                 value={values.password}
@@ -187,6 +193,16 @@ class Login extends Component {
                                     <div className="mt-6">
                                         <Button
                                             type="submit"
+                                            fullWidth
+                                            variant="contained"
+                                            disabled={loading}
+                                            color="primary"
+                                        >
+                                            {t("login")}
+                                        </Button>
+                                    </div>
+                                    {/*     <Button
+                                            type="submit"
                                             loading={loading}
                                             extraClass="w-full"
                                         >
@@ -205,7 +221,7 @@ class Login extends Component {
                                             </span>
                                             {t("login")}
                                         </Button>
-                                    </div>
+                                    </div> */}
                                 </form>
                             )}
                         </Formik>

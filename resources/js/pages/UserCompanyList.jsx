@@ -500,7 +500,12 @@ class UserCompanyList extends Component {
                                             />
                                         </TableCell>
                                         <TableCell
-                                            component="th"
+                                            component="a"
+                                            href={
+                                                "/company/users/" +
+                                                row.emp_id_invited
+                                            }
+                                            style={{ color: "#3f51b5" }}
                                             id={labelId}
                                             scope="row"
                                             padding="none"
@@ -649,7 +654,7 @@ const RenderToolBar = props => {
                                         )
                                     }
                                     onClick={() => {
-                                        filteredUsers(
+                                        exportMembers(
                                             1,
                                             checkToArray(filteredUsers())
                                         );
@@ -664,7 +669,7 @@ const RenderToolBar = props => {
                                         )
                                     }
                                     onClick={() => {
-                                        filteredUsers(
+                                        exportMembers(
                                             2,
                                             checkToArray(filteredUsers())
                                         );

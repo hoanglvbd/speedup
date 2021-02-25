@@ -4,6 +4,7 @@ import moment from "moment";
 import CompanyLayout from "../pageComponents/CompanyLayout";
 import { withRouter } from "react-router-dom";
 import ContextWrapper from "../context/ContextWrapper";
+import CompanyHeader from "../pageComponents/CompanyHeader";
 
 class ResultDetail extends Component {
     constructor(props) {
@@ -69,7 +70,8 @@ class ResultDetail extends Component {
     render() {
         const { loading, user, result } = this.state;
         return (
-            <CompanyLayout>
+            <>
+                <CompanyHeader />
                 {loading && <GlobalLoading title="Loading" />}
                 {!loading && (
                     <div className="w-full ml-64 mr-3 ">
@@ -114,7 +116,7 @@ class ResultDetail extends Component {
                         </div>
                     </div>
                 )}
-            </CompanyLayout>
+            </>
         );
     }
 

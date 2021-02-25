@@ -30,6 +30,17 @@ Route::prefix('/')->group(function () {
     Route::get('/', function () {
         return view('app');
     });
+
+    Route::get("/loi-moi-tham-gia-thanh-vien-cong-ty/{user_code}/{id_invite}/{code}.html", function () {
+        return view('app');
+    });
+    Route::get("/connectspeedup/{user_id}/{code}", function () {
+        return view('app');
+    });
+
+    Route::get('/service', function () {
+        return require_once('service/index.php');
+    });
     Route::get('/logout', function () {
         return view('app');
     });

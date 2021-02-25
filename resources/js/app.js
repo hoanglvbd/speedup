@@ -36,6 +36,8 @@ import SupperAdminTranslation from "./pages/SupperAdminTranslation";
 import CompanyLayout from "./pageComponents/CompanyLayout";
 import Snackbar from "@material-ui/core/Snackbar";
 import MuiAlert from "@material-ui/lab/Alert";
+import InviewPage from "./pages/InvitePage";
+import AutoLogin from "./pages/AutoLogin";
 i18n.use(initReactI18next) // passes i18n down to react-i18next
     .init({
         resources: {
@@ -193,6 +195,18 @@ class App extends Component {
                                         <Route path="/logout" exact>
                                             <Logout />
                                         </Route>
+                                        <Route
+                                            path="/connectspeedup/:user_id/:code"
+                                            exact
+                                        >
+                                            <AutoLogin />
+                                        </Route>
+                                        <Route
+                                            path="/loi-moi-tham-gia-thanh-vien-cong-ty/:user_code/:id_invite/:code.html"
+                                            exact
+                                        >
+                                            <InviewPage />
+                                        </Route>
                                         <Route path="/login" exact>
                                             {token == null ? (
                                                 <Login />
@@ -252,35 +266,38 @@ class App extends Component {
                                                 ) : user.type == 1 ? (
                                                     <Switch>
                                                         <Route
-                                                            path="/company/users/list"
-                                                            exact
-                                                        >
-                                                            <CompanyLayout />
-                                                        </Route>
-                                                        <Route
-                                                            path="/company/users/pending-invite"
-                                                            exact
-                                                        >
-                                                            <CompanyLayout />
-                                                        </Route>
-                                                        <Route
-                                                            path="/company/users/add"
-                                                            exact
-                                                        >
-                                                            <UserCompanyCreate />
-                                                        </Route>
-                                                        <Route
                                                             path="/company/users/:user_id/detail/:id"
                                                             exact
                                                         >
                                                             <ResultDetail />
                                                         </Route>
+
+                                                        <Route
+                                                            path="/company/users/list"
+                                                            exact
+                                                        >
+                                                            <CompanyLayout />
+                                                        </Route>
+
                                                         <Route
                                                             path="/company/users/:id"
                                                             exact
                                                         >
                                                             <UserDetail />
                                                         </Route>
+                                                        {/*    <Route
+                                                            path="/company/users/pending-invite"
+                                                            exact
+                                                        >
+                                                            <CompanyLayout />
+                                                        </Route> */}
+                                                        {/*      <Route
+                                                            path="/company/users/add"
+                                                            exact
+                                                        >
+                                                            <UserCompanyCreate />
+                                                        </Route> */}
+
                                                         <Redirect to="/company/users/list" />
                                                     </Switch>
                                                 ) : (

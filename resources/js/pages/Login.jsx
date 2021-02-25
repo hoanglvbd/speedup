@@ -70,7 +70,7 @@ class Login extends Component {
                             window.location.replace("/");
                         }
                         if (data.type_member == 1) {
-                            window.location.replace("company/users");
+                            window.location.replace("/company/users");
                         }
 
                         this.props.auth.setToken(data.session_token);

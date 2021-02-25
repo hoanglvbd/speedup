@@ -4,9 +4,9 @@ import { withRouter } from "react-router-dom";
 import ContextWrapper from "../context/ContextWrapper";
 import Button from "../components/Button";
 import moment from "moment";
-import { at } from "lodash";
 import DeletePopup from "../components/DeletePopup";
 import StudentEdit from "../pageComponents/StudentEdit";
+import CompanyHeader from "../pageComponents/CompanyHeader";
 class UserDetail extends Component {
     constructor(props) {
         super(props);
@@ -73,7 +73,12 @@ class UserDetail extends Component {
         window.axios
             .post(window.baseURL + "/api/export/summaryExcel", {
                 num: num,
-                data: [user]
+                data: [
+                    {
+                        ...user,
+                        emp_id_invited: user.user_id
+                    }
+                ]
             })
             .then(rs => {
                 if (num == 1) {
@@ -123,7 +128,8 @@ class UserDetail extends Component {
             answers
         } = this.state;
         return (
-            <CompanyLayout>
+            <>
+                <CompanyHeader />
                 <div className="w-full ml-64 mr-3 ">
                     <div className="border-b-2 px-3 py-4 flex items-center justify-between">
                         <div className="font-semibold text-lg">User Detail</div>
@@ -255,7 +261,7 @@ class UserDetail extends Component {
                         content={deleteContent}
                     />
                 )}
-            </CompanyLayout>
+            </>
         );
     }
     RenderBodyMain() {

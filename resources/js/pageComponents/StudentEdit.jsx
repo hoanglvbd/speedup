@@ -78,13 +78,6 @@ class StudentEdit extends Component {
             }
         );
     }
-
-    componentDidMount() {
-        this.setState({
-            max_time: this.props.user.max_time
-        });
-    }
-
     render() {
         const { visible, user, handleClose, resultCount } = this.props;
         const { serverErors, showPassword, loading, severMessage } = this.state;
@@ -104,7 +97,8 @@ class StudentEdit extends Component {
                         gender: user.gender,
                         phone: user.phone,
                         address: user.address,
-                        max_time: user.max_time
+                        max_time: user.max_time,
+                        password: ""
                     }}
                     validationSchema={schema}
                     onSubmit={values => this.handleEdit(values)}
@@ -132,7 +126,7 @@ class StudentEdit extends Component {
                                 </label>
                                 <select
                                     name="max_time"
-                                    value={user.max_time}
+                                    value={values.max_time}
                                     disabled={resultCount == 2}
                                     onChange={handleChange}
                                 >

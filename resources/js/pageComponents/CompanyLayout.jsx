@@ -8,7 +8,9 @@ import {
     Container,
     Menu,
     MenuItem,
-    CircularProgress
+    CircularProgress,
+    Typography,
+    Link as MeterialLink
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import Tabs from "@material-ui/core/Tabs";
@@ -22,6 +24,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import CompanyHeader from "./CompanyHeader";
+import { Formik } from "formik";
 
 class CompanyLayout extends Component {
     constructor(props) {
@@ -33,7 +36,12 @@ class CompanyLayout extends Component {
             showInvite: false,
             inviteLoading: false,
 
-            inviteEmail: ""
+            inviteEmail: "",
+            showDialog: false,
+            dialogTitle: "",
+            dialogContent: "",
+
+            company_detail: {}
         };
         this.handleClick = this.handleClick.bind(this);
         this.handleClose = this.handleClose.bind(this);
@@ -84,27 +92,45 @@ class CompanyLayout extends Component {
                 inviteLoading: true
             },
             async () => {
-                try {
-                    const rs_invite = await window.axios.post(window.apiURL, {
-                        method: "invite_user",
-                        params: {
-                            session_token: this.props.auth.token,
-                            email: inviteEmail,
-                            company_id: this.props.auth.user.id
-                        }
-                    });
-                    if (rs_invite.data.result_code == 1) {
-                        this.props.notify.success(
-                            rs_invite.data.result_message_text
-                        );
-                    } else {
-                        this.props.notify.error(
-                            rs_invite.data.result_message_text
-                        );
+                const rs_check = await window.axios.post(window.apiURL, {
+                    method: "check_email_exits",
+                    params: {
+                        email: inviteEmail
                     }
-                } catch (error) {
-                    this.props.notify.error("Unable to send email!");
-                } finally {
+                });
+                if (rs_check.data.result_code == 0) {
+                    try {
+                        const rs_invite = await window.axios.post(
+                            window.apiURL,
+                            {
+                                method: "invite_user",
+                                params: {
+                                    session_token: this.props.auth.token,
+                                    email: inviteEmail,
+                                    company_id: this.props.auth.user.id
+                                }
+                            }
+                        );
+                        if (rs_invite.data.result_code == 1) {
+                            this.props.notify.success(
+                                rs_invite.data.result_message_text
+                            );
+                        } else {
+                            this.props.notify.error(
+                                rs_invite.data.result_message_text
+                            );
+                        }
+                    } catch (error) {
+                        this.props.notify.error("Unable to send email!");
+                    } finally {
+                        this.setState({
+                            inviteLoading: false
+                        });
+                    }
+                } else {
+                    var rs_text = rs_check.data.result_message_text;
+                    rs_text = rs_text.replace("{email}", inviteEmail);
+                    this.props.notify.error(rs_text);
                     this.setState({
                         inviteLoading: false
                     });
@@ -112,6 +138,7 @@ class CompanyLayout extends Component {
             }
         );
     }
+
     render() {
         const {
             showUsers,
@@ -119,15 +146,22 @@ class CompanyLayout extends Component {
             value,
             showInvite,
             inviteLoading,
-            inviteEmail
+            inviteEmail,
+            company_detail
         } = this.state;
         return (
             <>
-                <CompanyHeader />
+                <CompanyHeader
+                    set_company_detail={item => {
+                        this.setState({
+                            company_detail: item
+                        });
+                    }}
+                />
+
                 <Container className="my-10">
                     <div className="flex items-center justify-between mb-10">
                         <Tabs
-                            variant="fullWidth"
                             indicatorColor="primary"
                             textColor="primary"
                             value={value}
@@ -137,13 +171,13 @@ class CompanyLayout extends Component {
                             <Tab
                                 component="a"
                                 href="#active"
-                                label="Active Member"
+                                label="Danh Sách Thành Viên"
                                 {...a11yProps(0)}
                             />
                             <Tab
                                 component="a"
                                 href="#pending"
-                                label="Pending Member"
+                                label="Thành Viên Đã Mời"
                                 {...a11yProps(1)}
                             />
                         </Tabs>
@@ -157,7 +191,7 @@ class CompanyLayout extends Component {
                             }}
                             startIcon={<AddIcon />}
                         >
-                            Invite Member
+                            Mời Thành Viên
                         </Button>
                     </div>
                     <SwipeableViews
@@ -189,138 +223,84 @@ class CompanyLayout extends Component {
                         </div>
                     )}
                     <form onSubmit={this.handleInvite}>
-                        <DialogTitle id="form-dialog-title">
-                            Invite member
-                        </DialogTitle>
-                        <DialogContent>
-                            <DialogContentText>
-                                To invite member, please enter email address
-                                here.
-                            </DialogContentText>
-                            <TextField
-                                autoFocus
-                                margin="dense"
-                                id="name"
-                                value={inviteEmail}
-                                onChange={event =>
-                                    this.setState({
-                                        inviteEmail: event.target.value
-                                    })
-                                }
-                                label="Email Address"
-                                type="email"
-                                fullWidth
-                                required
-                            />
-                        </DialogContent>
-                        <DialogActions>
-                            <Button
-                                onClick={() =>
-                                    this.setState({
-                                        showInvite: false
-                                    })
-                                }
-                                color="default"
-                            >
-                                Cancel
-                            </Button>
-                            <Button type="submit" color="primary">
-                                Send Invitation letter
-                            </Button>
-                        </DialogActions>
+                        {company_detail.point > 0 ? (
+                            <>
+                                <DialogTitle id="form-dialog-title">
+                                    Mời Thành Viên
+                                </DialogTitle>
+                                <DialogContent>
+                                    <DialogContentText>
+                                        Để mời thành viên, vui lòng nhập địa chỉ
+                                        email.
+                                    </DialogContentText>
+                                    <TextField
+                                        autoFocus
+                                        margin="dense"
+                                        id="name"
+                                        value={inviteEmail}
+                                        onChange={event =>
+                                            this.setState({
+                                                inviteEmail: event.target.value
+                                            })
+                                        }
+                                        label="Email"
+                                        type="email"
+                                        fullWidth
+                                        required
+                                    />
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button
+                                        onClick={() =>
+                                            this.setState({
+                                                showInvite: false
+                                            })
+                                        }
+                                        color="default"
+                                    >
+                                        Hủy
+                                    </Button>
+                                    <Button type="submit" color="primary">
+                                        Gửi Thư Mời
+                                    </Button>
+                                </DialogActions>
+                            </>
+                        ) : (
+                            <>
+                                <DialogTitle id="alert-dialog-title">
+                                    Số lượt tạo thành viên đã bị giới hạn. Vui
+                                    lòng nâng cấp gói dịch vụ.
+                                </DialogTitle>
+                                <DialogContent>
+                                    <DialogContentText id="alert-dialog-description">
+                                        Vui Lòng Truy Cập: <br />
+                                        <a
+                                            href="https://viecoi.vn/employer/cvpayment"
+                                            target="_blank"
+                                            className="text-blue-600"
+                                        >
+                                            https://viecoi.vn/employer/cvpayment
+                                        </a>
+                                        <br />
+                                        để nâng cáp gói dịch vụ
+                                    </DialogContentText>
+                                </DialogContent>
+                                <DialogActions>
+                                    <Button
+                                        onClick={() => {
+                                            this.setState({
+                                                showInvite: !showInvite
+                                            });
+                                        }}
+                                        color="primary"
+                                    >
+                                        OK
+                                    </Button>
+                                </DialogActions>
+                            </>
+                        )}
                     </form>
                 </Dialog>
-                {/*  <nav className="w-56 fixed left-0 bg-white border-gray-100 shadow h-full flex flex-col p-3">
-                    <Link
-                        to={window.baseURL + "/company"}
-                        className="text-main flex items-center"
-                    >
-                        <img
-                            className="w-24 mb-6"
-                            src={window.baseURL + "/public/images/logo.png"}
-                            alt="Workflow logo"
-                        />
-                    </Link>
-                    <div
-                        onClick={() => {
-                            this.setState({
-                                showUsers: !showUsers
-                            });
-                        }}
-                        className={
-                            (this.props.location.pathname ==
-                                "/company/users/add" ||
-                            this.props.location.pathname ==
-                                "/company/users/list" ||
-                            this.props.location.pathname ==
-                                "/company/users/pending-invite"
-                                ? "active"
-                                : "") + " navbar cursor-pointer"
-                        }
-                    >
-                        Users
-                    </div>
-                    <Collapse
-                        isOpened={
-                            showUsers ||
-                            this.props.location.pathname ==
-                                "/company/users/add" ||
-                            this.props.location.pathname ==
-                                "/company/users/list" ||
-                            this.props.location.pathname ==
-                                "/company/users/pending-invite"
-                        }
-                    >
-                        <div className="flex flex-col">
-                            <Link
-                                to={"/company/users/add"}
-                                className={
-                                    (this.props.location.pathname ==
-                                    "/company/users/add"
-                                        ? "active"
-                                        : "") + " navbar ml-3"
-                                }
-                            >
-                                Create member
-                            </Link>
-                            <Link
-                                to={"/company/users/pending-invite"}
-                                className={
-                                    (this.props.location.pathname ==
-                                    "/company/users/pending-invite"
-                                        ? "active"
-                                        : "") + " navbar ml-3"
-                                }
-                            >
-                                List Pending member
-                            </Link>
-                            <Link
-                                to={"/company/users/list"}
-                          
-                                className={
-                                    (this.props.location.pathname ==
-                                    "/company/users/list"
-                                        ? "active"
-                                        : "") + " navbar ml-3"
-                                }
-                            >
-                                List members
-                            </Link>
-                        </div>
-                    </Collapse>
-
-                    <hr />
-
-                    <a
-                        href={window.baseURL + "/logout"}
-                        className={" navbar text-red-600"}
-                    >
-                        Logout
-                    </a>
-                </nav>
-                <main className="min-h-full flex gap-6  bg-gray-100">
-                    {this.props.children}
-                </main> */}
             </>
         );
     }

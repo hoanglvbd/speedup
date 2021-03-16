@@ -150,10 +150,10 @@ class UserController extends Controller
 
         $result_detail = Question::with(['result'  => function ($query) use ($result_id) {
             $query->where('result_id', $result_id);
-        }])->where('lang', 3)->where('status', 1)->where('category', 1)->orderBy('unique_group', 'asc')->get()->toArray();
+        }])->where('lang', 1)->where('status', 1)->where('category', 1)->orderBy('unique_group', 'asc')->get()->toArray();
 
-        $levels_positive = Level::where('lang', 3)->where('category', 1)->where("type", 1)->orderBy('group', 'asc')->get()->toArray();
-        $levels_negative = Level::where('lang', 3)->where('category', 1)->where("type", -1)->orderBy('group', 'asc')->get()->toArray();
+        $levels_positive = Level::where('lang', 1)->where('category', 1)->where("type", 1)->orderBy('group', 'asc')->get()->toArray();
+        $levels_negative = Level::where('lang', 1)->where('category', 1)->where("type", -1)->orderBy('group', 'asc')->get()->toArray();
 
         $result = Result::where('id', $result_id)->first();
         return response()->json([

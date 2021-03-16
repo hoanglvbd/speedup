@@ -40,7 +40,12 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
 const headCells = [
-    { id: "name_invited", numeric: false, disablePadding: true, label: "Name" },
+    {
+        id: "name_invited",
+        numeric: false,
+        disablePadding: true,
+        label: "Tên Thành Viên"
+    },
     {
         id: "email_invited",
         numeric: false,
@@ -51,19 +56,19 @@ const headCells = [
         id: "max_submit",
         numeric: true,
         disablePadding: false,
-        label: "Max Time"
+        label: "Cho Phép Tối Đa (lần)"
     },
     {
         id: "results_count",
         numeric: true,
         disablePadding: false,
-        label: "Total Submit"
+        label: "Đã Nộp KQ (lần)"
     },
     {
         id: "updated_at",
         numeric: true,
         disablePadding: false,
-        label: "Latest Submit"
+        label: "Nộp Vào Lúc"
     }
 ];
 
@@ -231,7 +236,7 @@ class UserCompanyList extends Component {
                 <form onSubmit={this.handleSearch}>
                     <FormControl fullWidth variant="filled">
                         <InputLabel htmlFor="standard-adornment-Search">
-                            Search
+                            Tìm Thành Viên
                         </InputLabel>
                         <FilledInput
                             id="standard-adornment-Search"
@@ -278,6 +283,7 @@ class UserCompanyList extends Component {
                         </Table>
                     </TableContainer>
                     <TablePagination
+                        labelRowsPerPage="Hiển Thị"
                         rowsPerPageOptions={[25, 50, 100, 250]}
                         component="div"
                         count={Math.ceil(total / itemPerPage)}
@@ -534,7 +540,7 @@ class UserCompanyList extends Component {
                         {users.length == 0 && (
                             <TableRow>
                                 <TableCell colSpan={6} align="center">
-                                    No Data
+                                    Hiện chưa có thành viên nào!
                                 </TableCell>
                             </TableRow>
                         )}
@@ -610,7 +616,7 @@ const RenderToolBar = props => {
                 </Typography>
             ) : (
                 <Typography variant="h6" id="tableTitle" component="div">
-                    Active Members
+                    {/*   Active Members */}
                 </Typography>
             )}
 

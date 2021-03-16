@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import { Typography } from "@material-ui/core";
+import { LoginRedirect } from "../util/loginRedirect";
 
 const variants = {
     open: { opacity: 1, scale: 1, display: "block" },
@@ -50,7 +51,8 @@ class Login extends Component {
                         const data = rs.data.result_data;
                         const user = {
                             id: data.id,
-                            type: data.type_member,
+                            type_member: data.type_member,
+                            type: data.type,
                             username: data.username,
                             name: data.name,
                             email: data.email,
@@ -63,18 +65,10 @@ class Login extends Component {
                         );
                         localStorage.setItem("user", JSON.stringify(user));
 
-                        if (data.type_member == 0) {
-                            window.location.replace("/admin");
-                        }
-                        if (data.type_member == 2) {
-                            window.location.replace("/");
-                        }
-                        if (data.type_member == 1) {
-                            window.location.replace("/company/users");
-                        }
-
                         this.props.auth.setToken(data.session_token);
                         this.props.auth.setUser(user);
+
+                        LoginRedirect(user);
                     } else {
                         this.setState({
                             serverMessage: rs.data.result_message_text

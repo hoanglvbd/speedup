@@ -201,12 +201,14 @@ class App extends Component {
                                         >
                                             <AutoLogin />
                                         </Route>
-                                        <Route
-                                            path="/loi-moi-tham-gia-thanh-vien-cong-ty/:user_code/:id_invite/:code.html"
-                                            exact
-                                        >
-                                            <InviewPage />
-                                        </Route>
+                                        {token == null && (
+                                            <Route
+                                                path="/loi-moi-tham-gia-thanh-vien-cong-ty/:user_code/:id_invite/:code.html"
+                                                exact
+                                            >
+                                                <InviewPage />
+                                            </Route>
+                                        )}
                                         <Route path="/login" exact>
                                             {token == null ? (
                                                 <Login />
@@ -221,7 +223,7 @@ class App extends Component {
 
                                         {token !== null ? (
                                             <Switch>
-                                                {user.type == 0 ? (
+                                                {user.type != 2 ? (
                                                     <Switch>
                                                         <Route
                                                             path="/admin/company"
@@ -249,21 +251,7 @@ class App extends Component {
                                                         </Route>
                                                         <Redirect to="/admin/company" />
                                                     </Switch>
-                                                ) : user.type == 2 ? (
-                                                    <Switch>
-                                                        <Route path="/" exact>
-                                                            <Redirect to="/speedup" />
-                                                        </Route>
-                                                        <Route
-                                                            path="/speedup"
-                                                            exact
-                                                        >
-                                                            <UserHeader />
-                                                            <UserTestSpeedUp />
-                                                        </Route>
-                                                        <Redirect to="/" />
-                                                    </Switch>
-                                                ) : user.type == 1 ? (
+                                                ) : user.type_member != 2 ? (
                                                     <Switch>
                                                         <Route
                                                             path="/company/users/:user_id/detail/:id"
@@ -285,27 +273,22 @@ class App extends Component {
                                                         >
                                                             <UserDetail />
                                                         </Route>
-                                                        {/*    <Route
-                                                            path="/company/users/pending-invite"
-                                                            exact
-                                                        >
-                                                            <CompanyLayout />
-                                                        </Route> */}
-                                                        {/*      <Route
-                                                            path="/company/users/add"
-                                                            exact
-                                                        >
-                                                            <UserCompanyCreate />
-                                                        </Route> */}
-
                                                         <Redirect to="/company/users/list" />
                                                     </Switch>
                                                 ) : (
-                                                    <Redirect
-                                                        to={{
-                                                            pathname: "/login"
-                                                        }}
-                                                    />
+                                                    <Switch>
+                                                        <Route path="/" exact>
+                                                            <Redirect to="/speedup" />
+                                                        </Route>
+                                                        <Route
+                                                            path="/speedup"
+                                                            exact
+                                                        >
+                                                            <UserHeader />
+                                                            <UserTestSpeedUp />
+                                                        </Route>
+                                                        <Redirect to="/" />
+                                                    </Switch>
                                                 )}
                                             </Switch>
                                         ) : (

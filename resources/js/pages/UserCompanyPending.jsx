@@ -22,7 +22,8 @@ import {
     Menu,
     MenuItem,
     withStyles,
-    CircularProgress
+    CircularProgress,
+    Chip
 } from "@material-ui/core";
 import SearchIcon from "@material-ui/icons/Search";
 import FilterListIcon from "@material-ui/icons/FilterList";
@@ -52,13 +53,19 @@ const headCells = [
         id: "date_invite",
         numeric: true,
         disablePadding: false,
-        label: "Date Invited"
+        label: "Ngày Mời"
     },
     {
         id: "count_time_invite",
         numeric: true,
         disablePadding: false,
-        label: "Total Sent"
+        label: "Tổng Lượt Đã Mời"
+    },
+    {
+        id: "status_invite",
+        numeric: true,
+        disablePadding: false,
+        label: "Trạng Thái"
     },
     {
         id: "sent",
@@ -216,7 +223,20 @@ class UserCompanyPending extends Component {
                                         <TableCell align="right">
                                             {row.count_time_invite}
                                         </TableCell>
-
+                                        <TableCell align="right">
+                                            {row.status_invite == 0 && (
+                                                <Chip
+                                                    label="Đang Chờ"
+                                                    color="default"
+                                                />
+                                            )}
+                                            {row.status_invite == 1 && (
+                                                <Chip
+                                                    label="Đã Từ Chối"
+                                                    color="secondary"
+                                                />
+                                            )}
+                                        </TableCell>
                                         <TableCell align="right">
                                             {row.sent ? (
                                                 <Button
@@ -254,7 +274,7 @@ class UserCompanyPending extends Component {
                                                                 <EmailIcon />
                                                             }
                                                         >
-                                                            Re-send
+                                                            Mời Lại
                                                         </Button>
                                                     )}
                                                 </>
@@ -299,7 +319,7 @@ class UserCompanyPending extends Component {
                         }
                     });
                     let copy = rs1.data.result_data
-                        .filter(e => e.status_invite == 0)
+                        .filter(e => e.status_invite != 2)
                         .map(e => {
                             const o = Object.assign({}, e);
                             o.sent = false;
@@ -413,7 +433,7 @@ class UserCompanyPending extends Component {
                 <form onSubmit={this.handleSearch}>
                     <FormControl fullWidth variant="filled">
                         <InputLabel htmlFor="standard-adornment-Search">
-                            Search
+                            Tìm Thành Viên
                         </InputLabel>
                         <FilledInput
                             id="standard-adornment-Search"
@@ -451,6 +471,7 @@ class UserCompanyPending extends Component {
                         </Table>
                     </TableContainer>
                     <TablePagination
+                        labelRowsPerPage="Hiển Thị"
                         rowsPerPageOptions={[25, 50, 100, 250]}
                         component="div"
                         count={Math.ceil(total / itemPerPage)}
@@ -521,7 +542,7 @@ const RenderToolBar = props => {
             })}
         >
             <Typography variant="h6" id="tableTitle" component="div">
-                Pending Members
+                {/*  Pending Members */}
             </Typography>
             {/*  {numSelected > 0 ? (
                 <Typography color="inherit" variant="subtitle1" component="div">

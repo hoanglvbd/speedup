@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import GlobalLoading from "../components/GlobalLoading";
 import moment from "moment";
+moment.lang("vi");
 import CompanyLayout from "../pageComponents/CompanyLayout";
 import { withRouter } from "react-router-dom";
 import ContextWrapper from "../context/ContextWrapper";
@@ -22,14 +23,15 @@ class ResultDetail extends Component {
     componentDidMount() {
         let { id, user_id } = this.props.match.params;
         this.fetchUser(user_id);
+        this.fetchResult();
     }
     fetchUser(id) {
         window.axios
             .post(window.apiURL, {
-                method: "get_detail_user",
+                method: "get_detail_company",
                 params: {
                     session_token: this.props.auth.token,
-                    user_id: id
+                    company_id: id
                 }
             })
             .then(rs => {
@@ -37,8 +39,6 @@ class ResultDetail extends Component {
                     this.setState({
                         user: rs.data.result_data
                     });
-
-                    this.fetchResult(id);
                 } else {
                     this.props.notify.error(
                         "Fail to retrive data. Please try again!"
@@ -81,7 +81,7 @@ class ResultDetail extends Component {
                             </div>
                             <div className="flex flex-col">
                                 <div className="text-sm text-gray-600 font-semibold">
-                                    No. {result.number_of_times}
+                                    Lần. {result.number_of_times}
                                 </div>
                                 <div className="text-sm text-gray-600">
                                     {moment(result.updated_at).calendar()}
@@ -96,13 +96,13 @@ class ResultDetail extends Component {
                                             <thead>
                                                 <tr>
                                                     <th className="whitespace-no-wrap w-20 text-center px-6 py-3 bg-gray-800  text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                                                        Number
+                                                        STT
                                                     </th>
                                                     <th className="whitespace-no-wrap px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                                                        Question
+                                                        Câu Hỏi
                                                     </th>
                                                     <th className="whitespace-no-wrap w-20 px-6 py-3 bg-gray-800 text-center text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                                                        Answer
+                                                        Trả Lời
                                                     </th>
                                                 </tr>
                                             </thead>

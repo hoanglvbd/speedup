@@ -15,7 +15,8 @@ class UserDetail extends Component {
             showModalEdit: false,
             showDelete: false,
             currentResult: {},
-            answers: []
+            answers: [],
+            company_detail: {}
         };
         this.RenderBodyMain = this.RenderBodyMain.bind(this);
         this.fetchUser = this.fetchUser.bind(this);
@@ -27,15 +28,15 @@ class UserDetail extends Component {
     componentDidMount() {
         let { id } = this.props.match.params;
         this.fetchUser(id);
+        this.fetchResult(id);
     }
-
     fetchUser(id) {
         window.axios
             .post(window.apiURL, {
-                method: "get_detail_user",
+                method: "get_detail_company",
                 params: {
                     session_token: this.props.auth.token,
-                    user_id: id
+                    company_id: id
                 }
             })
             .then(rs => {
@@ -43,8 +44,6 @@ class UserDetail extends Component {
                     this.setState({
                         user: rs.data.result_data
                     });
-
-                    this.fetchResult(id);
                 } else {
                     this.props.notify.error(
                         "Fail to retrive data. Please try again!"
@@ -55,6 +54,7 @@ class UserDetail extends Component {
                 this.props.notify.error();
             });
     }
+
     fetchResult(id) {
         window.axios
             .post(window.baseURL + "/api/results", {
@@ -98,9 +98,9 @@ class UserDetail extends Component {
             showDelete: true,
             deleteContent:
                 time == 1
-                    ? "Result will not be recoverd?"
-                    : "Result will not be recoverd and the second time will become the first time?",
-            deleteTitle: time == 1 ? "Delete Result No.1" : "Delete Result No.2"
+                    ? "Kết quả sẽ bị xóa vĩnh viễn?"
+                    : "Kết quả sẽ bị xóa vĩnh viễn và kết quả lần 2 sẽ thành lần 1?",
+            deleteTitle: time == 1 ? "Xóa Kết Quả Lần 2" : "Xóa Kết Quả Lần 2"
         });
     }
     handledeleteClick() {
@@ -118,6 +118,7 @@ class UserDetail extends Component {
                 window.location.reload();
             });
     }
+
     render() {
         const {
             showModalEdit,
@@ -125,14 +126,17 @@ class UserDetail extends Component {
             showDelete,
             deleteTitle,
             deleteContent,
-            answers
+            answers,
+            company_detail
         } = this.state;
         return (
             <>
                 <CompanyHeader />
                 <div className="w-full ml-64 mr-3 ">
                     <div className="border-b-2 px-3 py-4 flex items-center justify-between">
-                        <div className="font-semibold text-lg">User Detail</div>
+                        <div className="font-semibold text-lg">
+                            Chi Tiết Thành Viên
+                        </div>
                     </div>
                     <div className="flex items-center"></div>
 
@@ -140,7 +144,7 @@ class UserDetail extends Component {
                         <div className="w-3/12 rounded bg-white">
                             <div className="flex flex-col shadow border">
                                 <div className="p-4 font-medium bg-gray-100 border-b">
-                                    Personal Information
+                                    Thông Tin
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
@@ -151,19 +155,19 @@ class UserDetail extends Component {
 
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
-                                        Name
+                                        Tên
                                     </p>
                                     <p>{user.name}</p>
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
-                                        Address
+                                        Địa Chỉ
                                     </p>
                                     <p>{user.address}</p>
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
-                                        Birthday
+                                        Ngày Sinh
                                     </p>
                                     <p>
                                         {moment(user.birthday).format(
@@ -173,7 +177,7 @@ class UserDetail extends Component {
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
-                                        Gender
+                                        Giới Tính
                                     </p>
                                     <p>
                                         {user.gender == 1 ? "Male" : "Female"}
@@ -181,18 +185,18 @@ class UserDetail extends Component {
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
-                                        Phone
+                                        SĐT
                                     </p>
                                     <p>{user.phone}</p>
                                 </div>
                                 <div className="p-4">
                                     <p className="font-medium text-gray-500 text-sm">
-                                        Max Allowed Time Submit
+                                        Số Lượt Cho Phép
                                     </p>
                                     <p>{user.max_time}</p>
                                 </div>
 
-                                <div className="p-4">
+                                {/*   <div className="p-4">
                                     <Button
                                         backgroundColor="bg-indigo-700"
                                         onClick={() =>
@@ -203,13 +207,13 @@ class UserDetail extends Component {
                                     >
                                         Edit
                                     </Button>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                         <div className="w-9/12 pl-6 ">
                             <div className="flex flex-col shadow border bg-white">
                                 <div className="p-4 font-medium bg-gray-100 border-b flex justify-between">
-                                    Results
+                                    Kết Quả
                                 </div>
                                 <div className="p-4">
                                     <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -219,10 +223,10 @@ class UserDetail extends Component {
                                                     <thead>
                                                         <tr>
                                                             <th className="whitespace-no-wrap w-20 px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                                                                N.o
+                                                                Lần
                                                             </th>
                                                             <th className="whitespace-no-wrap w-20 px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider">
-                                                                Latest update
+                                                                Nộp Vào Lúc
                                                             </th>
                                                             <th className="whitespace-no-wrap w-20 px-6 py-3 bg-gray-800 text-left text-xs leading-4 font-medium text-white uppercase tracking-wider"></th>
                                                         </tr>
@@ -293,7 +297,7 @@ class UserDetail extends Component {
                                     }
                                     className="bg-indigo-600 text-white whitespace-no-wrap items-center justify-center px-4 py-1 border border-transparent text-sm leading-6 font-medium rounded-md transition ease-in-out duration-150"
                                 >
-                                    View Detail
+                                    Xem
                                 </a>
                             </div>
                             <div className="text-sm leading-5 text-gray-900 mx-3">
@@ -306,7 +310,7 @@ class UserDetail extends Component {
                                     }
                                     className="bg-green-600 text-white whitespace-no-wrap items-center justify-center px-4 py-1 border border-transparent text-sm leading-6 font-medium rounded-md transition ease-in-out duration-150"
                                 >
-                                    Download Raw Result
+                                    Tải Exel
                                 </button>
                             </div>
                             <div className="text-sm leading-5 text-gray-900 mx-3">
@@ -320,7 +324,7 @@ class UserDetail extends Component {
                                     }
                                     className="bg-red-600 hover:text-red-900 text-white appearance-none  px-4 py-1 rounded-md border text-sm leading-5 font-medium"
                                 >
-                                    Delete
+                                    Xóa Kết Quả
                                 </button>
                             </div>
                         </td>

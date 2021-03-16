@@ -1,6 +1,7 @@
 import React from "react";
 import { Component } from "react";
 import { withRouter } from "react-router-dom";
+import { LoginRedirect } from "../util/loginRedirect";
 
 class AutoLogin extends Component {
     constructor(props) {
@@ -26,7 +27,8 @@ class AutoLogin extends Component {
                 const data = rs.data.result_data;
                 const user = {
                     id: data.id,
-                    type: data.type_member,
+                    type_member: data.type_member,
+                    type: data.type,
                     username: data.username,
                     name: data.name,
                     email: data.email,
@@ -36,18 +38,10 @@ class AutoLogin extends Component {
                 localStorage.setItem("session_token", data.session_token);
                 localStorage.setItem("user", JSON.stringify(user));
 
-                if (data.type_member == 0) {
-                    window.location.replace("/admin");
-                }
-                if (data.type_member == 2) {
-                    window.location.replace("/");
-                }
-                if (data.type_member == 1) {
-                    window.location.replace("/company/users");
-                }
-
                 this.props.auth.setToken(data.session_token);
                 this.props.auth.setUser(user);
+
+                LoginRedirect(user);
             } else {
                 this.setState({
                     serverMessage: rs.data.result_message_text

@@ -52,12 +52,12 @@ const headCells = [
         disablePadding: true,
         label: "Email"
     },
-    {
+    /*  {
         id: "max_submit",
         numeric: true,
         disablePadding: false,
         label: "Cho Phép Tối Đa (lần)"
-    },
+    }, */
     {
         id: "results_count",
         numeric: true,
@@ -205,9 +205,10 @@ class UserCompanyList extends Component {
                         }
                     });
 
-                    this.props.notify.success("Remove successfully!");
+                    this.props.notify.success(rs.data.result_message_text);
                     this.setState({
-                        showDelete: false
+                        showDelete: false,
+                        selected: []
                     });
                     this.fetchUsers();
                 } catch (error) {
@@ -311,12 +312,10 @@ class UserCompanyList extends Component {
                     )}
 
                     <DialogTitle id="alert-dialog-title">
-                        {"Remove member from your company?"}
+                        {"Xóa thành viên này khỏi công ty của bạn?"}
                     </DialogTitle>
                     <DialogContent>
-                        <DialogContentText id="alert-dialog-description">
-                            This action cannot be undone!
-                        </DialogContentText>
+                        <DialogContentText id="alert-dialog-description"></DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button
@@ -327,14 +326,14 @@ class UserCompanyList extends Component {
                             }
                             color="primary"
                         >
-                            Disagree
+                            Không Xóa
                         </Button>
                         <Button
                             onClick={() => this.handleDelete()}
                             color="secondary"
                             autoFocus
                         >
-                            Agree
+                            Xóa
                         </Button>
                     </DialogActions>
                 </Dialog>
@@ -521,9 +520,9 @@ class UserCompanyList extends Component {
                                         <TableCell>
                                             {row.email_invited}
                                         </TableCell>
-                                        <TableCell align="right">
+                                        {/* <TableCell align="right">
                                             {row.max_time}
-                                        </TableCell>
+                                        </TableCell> */}
                                         <TableCell align="right">
                                             {row.results_count}
                                         </TableCell>
@@ -612,7 +611,7 @@ const RenderToolBar = props => {
         >
             {numSelected > 0 ? (
                 <Typography color="inherit" variant="subtitle1" component="div">
-                    {numSelected} selected
+                    Đã chọn {numSelected}
                 </Typography>
             ) : (
                 <Typography variant="h6" id="tableTitle" component="div">
@@ -624,7 +623,7 @@ const RenderToolBar = props => {
                 <div className="flex items-center justify-center">
                     <div>
                         <div>
-                            <Tooltip title="Export selected members">
+                            <Tooltip title="Tải KQ">
                                 <IconButton
                                     variant="text"
                                     color="primary"
@@ -666,7 +665,7 @@ const RenderToolBar = props => {
                                         );
                                     }}
                                 >
-                                    Export No.1
+                                    Tải KQ Lần 1
                                 </MenuItem>
                                 <MenuItem
                                     disabled={
@@ -681,7 +680,7 @@ const RenderToolBar = props => {
                                         );
                                     }}
                                 >
-                                    Export No.2
+                                    Tải KQ Lần 2
                                 </MenuItem>
                             </Menu>
                         </div>
@@ -698,7 +697,7 @@ const RenderToolBar = props => {
                 </div>
             ) : (
                 <div>
-                    <Tooltip title="Export all members">
+                    <Tooltip title="Tải KQ">
                         <IconButton
                             variant="text"
                             color="primary"
@@ -731,7 +730,7 @@ const RenderToolBar = props => {
                                 exportMembers(1, checkToArray(users));
                             }}
                         >
-                            Export No.1
+                            Tải KQ Lần 1
                         </MenuItem>
                         <MenuItem
                             disabled={!users.some(r => r.results_count >= 2)}
@@ -739,7 +738,7 @@ const RenderToolBar = props => {
                                 exportMembers(2, checkToArray(users));
                             }}
                         >
-                            Export No.2
+                            Tải KQ Lần 2
                         </MenuItem>
                     </Menu>
                 </div>

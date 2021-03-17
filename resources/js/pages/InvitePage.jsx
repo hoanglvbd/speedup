@@ -188,8 +188,8 @@ class InviewPage extends Component {
 
                                 this.props.auth.setToken(data.session_token);
                                 this.props.auth.setUser(user);
-
-                                LoginRedirect(user);
+                                /* 
+                                LoginRedirect(user); */
                             } else {
                                 this.setState({
                                     showDialog: true,

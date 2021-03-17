@@ -41,7 +41,7 @@ class AutoLogin extends Component {
                 this.props.auth.setToken(data.session_token);
                 this.props.auth.setUser(user);
 
-                LoginRedirect(user);
+                /*     LoginRedirect(user); */
             } else {
                 this.setState({
                     serverMessage: rs.data.result_message_text

@@ -327,7 +327,7 @@ class CalculationController extends Controller
             $summary = [];
             foreach ($data as $key => $value) {
 
-                $first = Result::where('user_id', $value['company_id'])->where('number_of_times', 1)->first();
+                $first = Result::where('user_id', $value['emp_id_invited'])->where('number_of_times', 1)->first();
                 if ($first == null) continue;
 
                 $detail_first = ResultDetail::where("result_id", $first->id)->orderBy('question_group_id')->get()->toArray();

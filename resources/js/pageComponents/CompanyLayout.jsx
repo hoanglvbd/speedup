@@ -230,7 +230,9 @@ class CompanyLayout extends Component {
                                 </DialogTitle>
                                 <DialogContent>
                                     <DialogContentText>
-                                        Để mời thành viên, vui lòng nhập địa chỉ
+                                        Số điểm hiện tại của bạn là{" "}
+                                        {company_detail.point} điểm. Mất 1 điểm
+                                        để mời thành viên, vui lòng nhập địa chỉ
                                         email.
                                     </DialogContentText>
                                     <TextField

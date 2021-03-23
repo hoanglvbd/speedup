@@ -1,6 +1,7 @@
 import React from "react";
 import { Component } from "react";
 import { withRouter } from "react-router-dom";
+import ContextWrapper from "../context/ContextWrapper";
 import { LoginRedirect } from "../util/loginRedirect";
 
 class AutoLogin extends Component {
@@ -41,7 +42,7 @@ class AutoLogin extends Component {
                 this.props.auth.setToken(data.session_token);
                 this.props.auth.setUser(user);
 
-                /*     LoginRedirect(user); */
+                window.location.replace("/");
             } else {
                 this.setState({
                     serverMessage: rs.data.result_message_text
@@ -62,4 +63,4 @@ class AutoLogin extends Component {
     }
 }
 
-export default withRouter(AutoLogin);
+export default ContextWrapper(withRouter(AutoLogin));

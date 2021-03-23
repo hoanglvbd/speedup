@@ -140,7 +140,12 @@ class UserCompanyList extends Component {
                         tableLoading: false
                     });
                 } catch (error) {
-                    this.props.notify.error();
+                    /*  this.props.notify.error(); */
+                    localStorage.removeItem("session_token");
+                    localStorage.removeItem("user");
+                    auth.user = {};
+                    auth.token = null;
+                    location.href = "/login";
                 } finally {
                 }
             }
